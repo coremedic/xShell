@@ -13,6 +13,8 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 )
 
+const Port = "80"
+
 type shell struct {
 	id        string
 	ip        string
@@ -151,7 +153,7 @@ func main() {
 	http.HandleFunc("/result", postResultHandler)
 
 	go func() {
-		http.ListenAndServe(":80", nil)
+		http.ListenAndServe(":"+Port, nil)
 	}()
 
 	go cleanOldShells()

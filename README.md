@@ -10,18 +10,7 @@
 ### Change listener port
 In c2/httpC2.go:
 ```go
-func main() {
-	http.HandleFunc("/shellID", shellIDHandler)
-	http.HandleFunc("/command", getCommandHandler)
-	http.HandleFunc("/result", postResultHandler)
-
-	go func() {
-		http.ListenAndServe(":80", nil) // change port here
-	}()
-
-	go cleanOldShells()
-	readUserCommand()
-}
+const Port = "80" // change port here
 ```
 
 ### Start listener
