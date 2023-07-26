@@ -17,7 +17,7 @@ const Port = "80" // change port here
 ```sh
 go run c2/httpC2.go
 ```
-If you want to listener on port 80 or 443 you must use sudo:
+If you want the listener on port 80 or 443 you must use sudo:
 ```sh
 sudo go run c2/httpC2.go
 ```
