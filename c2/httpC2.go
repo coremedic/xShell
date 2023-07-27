@@ -72,7 +72,7 @@ func postResultHandler(w http.ResponseWriter, r *http.Request) {
 	defer mutex.Unlock()
 
 	if s, ok := shells[id]; ok {
-		if strings.Contains(string(body), "Microsoft Windows") {
+		if strings.Contains(string(body), "Microsoft Windows [") {
 			s.version = strings.TrimSpace(string(body))
 		} else {
 			if currentShell != nil && currentShell.id == id {

