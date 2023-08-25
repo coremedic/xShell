@@ -12,6 +12,8 @@ type Link struct {
 	Key  []byte
 }
 
+var HttpLink Link
+
 func (l *Link) NewRequest(data []byte) (*http.Request, error) {
 	baseURL := l.Host + fmt.Sprintf("/result?id=%s", l.Id)
 	body := bytes.NewReader(data)
