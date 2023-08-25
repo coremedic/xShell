@@ -8,7 +8,6 @@ import (
 )
 
 type Worker struct {
-	Id     int
 	Status string // starting || idle || running || stopping
 	Sleep  int    // seconds??
 	Link   *Link
@@ -32,7 +31,7 @@ func (w *Worker) Run() {
 				if err != nil {
 					continue
 				}
-				newReq, err := w.Link.NewRequest(encBytes)
+				newReq, err := w.Link.NewResultRequest(encBytes)
 				if err != nil {
 					continue
 				}
@@ -43,7 +42,7 @@ func (w *Worker) Run() {
 			if err != nil {
 				continue
 			}
-			newReq, err := w.Link.NewRequest(encBytes)
+			newReq, err := w.Link.NewResultRequest(encBytes)
 			if err != nil {
 				continue
 			}
