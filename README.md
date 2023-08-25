@@ -1,12 +1,17 @@
 <div align="center">
   <h1>xShell</h1>
   <br/>
-  <p><i>A simple reverse http shell written in golang</i></p>
+  <p><i>A simple concurrent http shell</i></p>
   <br/>
 </div>
 
+# About
+- Commands are executed by workers
+- Workers are goroutines that simply execute the commands
+- All workers are indexed in a worker map
+- Workers are dynamically allocated based on workload
+- Beacon workers are responsible for callbacks
 # Usage
-
 ### Change listener port:
 In c2/httpC2.go:
 ```go
