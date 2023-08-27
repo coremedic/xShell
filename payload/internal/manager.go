@@ -3,6 +3,7 @@ package internal
 import (
 	"container/heap"
 	"fmt"
+	"time"
 )
 
 type IntHeap []int
@@ -23,7 +24,7 @@ func (h *IntHeap) Pop() interface{} {
 	return x
 }
 
-var Workers map[int]*Worker
+var Workers map[int]*Worker = make(map[int]*Worker)
 var OpenIds IntHeap
 
 func AddWorker(w *Worker) int {
@@ -52,6 +53,14 @@ func GetWorkerstatus(index int) (string, error) {
 		return "", fmt.Errorf("Worker not found at index %d", index)
 	}
 	return worker.Status, nil
+}
+
+func GetWorkerTime(index int) (time.Time, error) {
+	worker, exists := Workers[index]
+	if !exists {
+		return time.Time{}, fmt.Errorf("Worker not found at index %d", index)
+	}
+	return worker.Time, nil
 }
 
 func GetAllStatus() map[int]string {

