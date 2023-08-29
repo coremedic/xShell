@@ -1,4 +1,4 @@
-package evasion
+package internal
 
 import (
 	"bytes"
