@@ -6,8 +6,8 @@ import (
 	"xShell/c2/internal"
 )
 
-var Port string = "443"
-var Key string = "thisismypassword"
+var Port string = ""
+var Key string = ""
 
 func main() {
 	if _, err := os.Stat("c2/data/cert.pem"); err != nil {

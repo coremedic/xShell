@@ -50,7 +50,7 @@ func (l *Listener) CallBackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shell, err := ShellMap.Get(id); shell != nil && err == nil && shell.Id == CurrentShell.Id {
-		fmt.Printf("[*] Agent called back, sent %d bytes\n", len(decryptedBody))
+		fmt.Printf("\n[*] Agent called back, sent %d bytes\n", len(decryptedBody))
 		fmt.Println(string(decryptedBody))
 		fmt.Printf("xShell %s> ", CurrentShell.Id)
 	}

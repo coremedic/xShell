@@ -9,7 +9,7 @@ import (
 )
 
 // TODO: pad keys
-var KeyStr string = "thisismypassword" // must be 16, 24, 32 bytes
+var KeyStr string = "" // must be 16, 24, 32 bytes
 var C2Host string = ""
 
 func main() {
