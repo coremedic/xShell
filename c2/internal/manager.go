@@ -3,12 +3,14 @@ package internal
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 type Shell struct {
-	Id   string
-	Ip   string
-	Cmds []string
+	Id    string
+	Ip    string
+	LCall time.Time
+	Cmds  []string
 }
 
 type SafeShellMap struct {

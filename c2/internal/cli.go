@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/chzyer/readline"
 )
@@ -22,7 +24,7 @@ shell <shell_name>       Interact with a specific shell
 mexec <command>          Execute command on all active shells
 clear                    Clear the console
 exit                     Exit shell interaction, return to main menu
-quit                     Exit xShell
+quit                     Quit xShell
 -------------------------------------------
 `
 
@@ -46,10 +48,19 @@ func StartCLI() {
 		return
 	}
 	defer l.Close()
+	historyFile, err := os.OpenFile(".history", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("Error opening history file: %v\n", err)
+		return
+	}
+	defer historyFile.Close()
 	for {
 		command, err := l.Readline()
 		if err != nil {
 			break
+		}
+		if _, err := historyFile.WriteString(command + "\n"); err != nil {
+			fmt.Printf("Failed to write to history file: %s\n", err)
 		}
 		command = strings.TrimSpace(command)
 		if CurrentShell != nil {
@@ -78,8 +89,11 @@ func StartCLI() {
 				fmt.Println("No Active Shells")
 				continue
 			}
+			sort.Slice(shells, func(i, j int) bool {
+				return shells[i].Id < shells[j].Id
+			})
 			for _, shell := range shells {
-				fmt.Printf("ID: %s, IP: %s\n", shell.Id, shell.Ip)
+				fmt.Printf("ID: %s, IP: %s Last Call: %.0f seconds ago\n", shell.Id, shell.Ip, time.Duration(time.Since(shell.LCall)).Seconds())
 			}
 		} else if command == "help" {
 			fmt.Print(helpMenu)

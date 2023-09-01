@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"io/ioutil"
 	"math/big"
 	"net"
 	"os"
@@ -67,11 +66,11 @@ func GenerateCertificate(cert *X509Cert) error {
 		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
 	})
 	// Write certificate and private key files to disk
-	err = ioutil.WriteFile(cert.CertFile, certPEM, 0644)
+	err = os.WriteFile(cert.CertFile, certPEM, 0644)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(cert.KeyFile, keyPEM, 0600)
+	err = os.WriteFile(cert.KeyFile, keyPEM, 0600)
 	if err != nil {
 		os.Remove(cert.CertFile)
 		return err

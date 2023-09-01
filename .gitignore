@@ -19,4 +19,9 @@
 
 # Go workspace file
 go.work
-data/**
+
+# xShell files
+.history
+c2/data/*
+c2/data/**
+!c2/data/.gitkeep

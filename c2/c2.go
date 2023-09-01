@@ -28,5 +28,6 @@ func main() {
 		Key:      []byte(Key),
 	}
 	go listener.StartListener()
+	fmt.Println("Welcome to xShell v0.2 (2023-08-31)")
 	internal.StartCLI()
 }

