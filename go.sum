@@ -8,3 +8,5 @@ github.com/enceve/crypto v0.0.0-20160707101852-34d48bb93815 h1:D22EM5TeYZJp43hGD
 github.com/enceve/crypto v0.0.0-20160707101852-34d48bb93815/go.mod h1:wYFFK4LYXbX7j+76mOq7aiC/EAw2S22CrzPHqgsisPw=
 golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 h1:y/woIyUBFbpQGKS0u1aHF/40WUDnek3fPOyD08H5Vng=
 golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.12.0 h1:CM0HF96J0hcLAwsHPJZjfdNzs0gftsLfgKt57wWHJ0o=
+golang.org/x/sys v0.12.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

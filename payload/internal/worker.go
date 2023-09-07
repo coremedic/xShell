@@ -24,6 +24,7 @@ func (w *Worker) Run() {
 		if command := w.Cqueue.GetNext(); command != nil {
 			w.Status = "running"
 			w.Time = time.Now().UTC()
+
 			cmd := strings.Fields(*command)
 			shell := cmd[0]
 			args := cmd[1:]
@@ -51,4 +52,8 @@ func (w *Worker) Run() {
 			w.Rqueue.Add(newReq)
 		}
 	}
+}
+
+func RunOp(fp Op, args []string) ([]byte, error) {
+	return fp(args)
 }
