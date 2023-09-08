@@ -17,14 +17,23 @@ var CurrentShell *Shell
 var helpMenu string = `
 xShell v0.2 (2023-08-31)
 -------------------------------------------
+Main Menu Commands:
 Command                  Description
 -------------------------------------------
 shells                   List all active shells
 shell <shell_name>       Interact with a specific shell
 mexec <command>          Execute command on all active shells
 clear                    Clear the console
+help                     Show this menu
 exit                     Exit shell interaction, return to main menu
 quit                     Quit xShell
+-------------------------------------------
+Shell Interaction Commands:
+Command                  Description
+-------------------------------------------
+exec <command>           Run command (defaults to powershell)
+whoami                   Runs whoami
+kill                     Kills payload process
 -------------------------------------------
 `
 
@@ -34,7 +43,10 @@ func StartCLI() {
 		readline.PcItem("shell"),
 		readline.PcItem("mexec"),
 		readline.PcItem("clear"),
+		readline.PcItem("help"),
 		readline.PcItem("exit"),
+		readline.PcItem("whoami"),
+		readline.PcItem("kill"),
 		readline.PcItem("quit"),
 	)
 	l, err := readline.NewEx(&readline.Config{
@@ -108,6 +120,7 @@ func StartCLI() {
 				} else {
 					fmt.Printf("%s\n", string(data))
 				}
+				l.SetPrompt(fmt.Sprintf("xShell %s> ", CurrentShell.Id))
 			} else if err == nil {
 				fmt.Printf("No shell with ID %s\n", id)
 			} else {

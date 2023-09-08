@@ -106,6 +106,11 @@ func (l *Listener) checkinHandler(w http.ResponseWriter, r *http.Request) {
 func logRequest(handler http.Handler, log *log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Received request %s %s\n", r.Method, r.URL)
+		for name, headers := range r.Header {
+			for _, h := range headers {
+				log.Printf("%v: %v\n", name, h)
+			}
+		}
 		handler.ServeHTTP(w, r)
 	})
 }

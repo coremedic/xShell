@@ -19,6 +19,7 @@ func main() {
 	if err != nil {
 		os.Exit(0)
 	}
+	fmt.Println(id)
 	internal.HttpLink.Id = id
 	beacon := internal.Beacon{
 		Sleep:    15,
@@ -97,10 +98,11 @@ func getId() (string, error) {
 
 func newWorkerObj() *internal.Worker {
 	worker := internal.Worker{
-		Sleep:  5,
-		Link:   &internal.HttpLink,
-		Rqueue: &internal.RequestQueue,
-		Cqueue: &internal.CommandQueue,
+		Sleep:      5,
+		Link:       &internal.HttpLink,
+		Rqueue:     &internal.RequestQueue,
+		Cqueue:     &internal.CommandQueue,
+		FuncPtrMap: internal.FuncPtrMap,
 	}
 	return &worker
 }

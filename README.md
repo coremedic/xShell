@@ -23,7 +23,7 @@ var Key string = "" // set encryption key here (must match key in payload)
 ```sh
 go run c2/c2.go
 ```
-If you want the listener to listen on port 443 you must use sudo:
+If listening on a protected port (any port under 1024) use sudo:
 ```sh
 sudo go run c2/c2.go
 ```
@@ -50,3 +50,6 @@ var C2Host string = "" // set C2 host ip or hostname (must start with https://)
 GOOS=windows GOARCH=amd64 go build -ldflags "-H 'windowsgui' -w -s" -o xShell.exe payload/xShell.go # for Windows 64bit amd64
 GOOS=darwin GOARCH=amd64 go build -ldflags "-w -s" -o xShellosx payload/xShell.go # for macOS 64bit amd64
 ```
+
+# License
+[Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)](https://creativecommons.org/licenses/by-nc-nd/4.0/)

@@ -1,18 +1,18 @@
 package internal
 
 import (
-	"os/exec"
 	"strings"
 	"time"
 )
 
 type Worker struct {
-	Status string // starting || idle || running || stopping
-	Sleep  int    // seconds??
-	Time   time.Time
-	Link   *Link
-	Rqueue *SafeRequestQueue
-	Cqueue *SafeCommandQueue
+	Status     string // starting || idle || running || stopping
+	Sleep      int    // seconds??
+	Time       time.Time
+	Link       *Link
+	Rqueue     *SafeRequestQueue
+	Cqueue     *SafeCommandQueue
+	FuncPtrMap map[string]FuncPtr
 }
 
 func (w *Worker) Run() {
@@ -24,11 +24,14 @@ func (w *Worker) Run() {
 		if command := w.Cqueue.GetNext(); command != nil {
 			w.Status = "running"
 			w.Time = time.Now().UTC()
-
 			cmd := strings.Fields(*command)
-			shell := cmd[0]
+			op := cmd[0]
 			args := cmd[1:]
-			ret, err := exec.Command(shell, args...).Output()
+			fp, exists := w.FuncPtrMap[op]
+			if !exists {
+				continue
+			}
+			ret, err := fp(args)
 			if err != nil {
 				encBytes, err := SerpentEncrypt([]byte(err.Error()), w.Link.Key)
 				if err != nil {
@@ -52,8 +55,4 @@ func (w *Worker) Run() {
 			w.Rqueue.Add(newReq)
 		}
 	}
-}
-
-func RunOp(fp Op, args []string) ([]byte, error) {
-	return fp(args)
 }
