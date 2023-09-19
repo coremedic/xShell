@@ -13,7 +13,7 @@ type FuncPtr func([]string) ([]byte, error)
 var FuncPtrMap = map[string]FuncPtr{
 	"whoami": Whoami,
 	"exec":   Exec,
-	"mimi":   Mimi,
+//	"mimi":   Mimi,
 	"kill":   Kill,
 }
 
