@@ -15,7 +15,6 @@ func main() {
 		internal.GenerateCertificate(&internal.X509Cert{
 			Orgs:     []string{""},
 			Names:    []string{""},
-			Ips:      []string{""},
 			CertFile: "c2/data/cert.pem",
 			KeyFile:  "c2/data/key.pem",
 		})
