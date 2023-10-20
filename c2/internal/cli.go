@@ -32,7 +32,7 @@ Shell Interaction Commands:
 Command                  Description
 -------------------------------------------
 exec <command>           Run command (defaults to powershell)
-whoami                   Runs whoami
+whoami                   Run "whoami" (powershell)
 kill                     Kills payload process
 -------------------------------------------
 `
