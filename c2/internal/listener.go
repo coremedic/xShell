@@ -143,9 +143,12 @@ func (l *Listener) StartListener() {
 	http.Handle("/", logRequest(http.HandlerFunc(l.handler), requestLog))
 
 	server := &http.Server{
-		Addr:     ":" + l.Port,
+		Addr:     fmt.Sprintf("0.0.0.0:%s", l.Port),
 		ErrorLog: errorLog,
 	}
 
-	_ = server.ListenAndServeTLS(l.CertFile, l.KeyFile)
+	err = server.ListenAndServeTLS(l.CertFile, l.KeyFile)
+	if err != nil {
+		errorLog.Fatalf("Server failed to start: %v", err)
+	}
 }
