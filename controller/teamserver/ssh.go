@@ -1,6 +1,7 @@
 package teamserver
 
 import (
+	"fmt"
 	"log"
 	"net"
 
@@ -18,14 +19,29 @@ func (s *sshServer) Start() {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Print("[ERR] Failed to start ssh server")
+				log.Print("Panic in (s *sshServer) Start(): Recovered")
+				fmt.Printf("r: %v\n", r)
 			}
 		}()
+		listener, err := net.Listen("tcp", net.JoinHostPort("localhost", "2222"))
+		if err != nil {
+			log.Panicf("Error starting listener: %s", err.Error())
+		}
+		s.Listener = &listener
+		parsedKey, err := ssh.ParsePrivateKey(s.PrivKey)
+		if err != nil {
+			log.Panicf("Error parsing private key: %s", err.Error())
+		}
+		if s.Config == nil {
+			s.Config = &ssh.ServerConfig{
+				NoClientAuth: true,
+			}
+			s.Config.AddHostKey(parsedKey)
+		}
 		for {
-			listener := *s.Listener
 			conn, err := listener.Accept()
 			if err != nil {
-				log.Panic(err)
+				log.Panicf("Error accepting connection: %s", err.Error())
 			}
 			go clientHandler(conn, s.Config)
 		}
@@ -35,12 +51,12 @@ func (s *sshServer) Start() {
 func clientHandler(conn net.Conn, config *ssh.ServerConfig) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Print("[ERR] Failed to handle client")
+			log.Print("Panic in clientHandler(): Recovered")
 		}
 	}()
 	_, chans, reqs, err := ssh.NewServerConn(conn, config)
 	if err != nil {
-		log.Panic(err.Error())
+		log.Panicf("Error accepting ssh connection: %s", err.Error())
 	}
 	go ssh.DiscardRequests(reqs)
 
@@ -50,5 +66,10 @@ func clientHandler(conn net.Conn, config *ssh.ServerConfig) {
 			continue
 		}
 		// WIP: Accept channel, handle commands
+		channel, _, err := newChan.Accept()
+		if err != nil {
+			log.Panicf("Error accepting shh channel: %s", err.Error())
+		}
+		go newConsoleSession(channel)
 	}
 }

@@ -1,18 +1,33 @@
 package teamserver
 
-import "sync"
+import (
+	"os"
+	"sync"
+)
 
 type TeamServer struct {
+	SshServer *sshServer
+	Port      string
 }
 
 var (
-	tsInstance *TeamServer
-	once       sync.Once
+	sshInstance *sshServer
+	tsInstance  *TeamServer
+	once        sync.Once
 )
+
+func init() {
+	if _, err := os.Stat("./.xshell"); err != nil {
+		os.Mkdir("./xhsell", 0744)
+	}
+}
 
 func GetTeamServerInstance() *TeamServer {
 	once.Do(func() {
-		tsInstance = &TeamServer{}
+		sshInstance = &sshServer{}
+		tsInstance = &TeamServer{
+			SshServer: sshInstance,
+		}
 	})
 	return tsInstance
 }
