@@ -15,12 +15,12 @@ func TestSSHServer(t *testing.T) {
 	// Get singleton
 	ts := teamserver.GetTeamServerInstance()
 	// Generate host keys
-	ts.SshServer.PrivKey, ts.SshServer.PubKey, _, _, err = teamserver.GenHostKeys()
+	ts.PrivKey, ts.PubKey, _, _, err = teamserver.GenHostKeys()
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	// Start ssh server
-	ts.SshServer.Start()
+	// Start teamserver
+	ts.Start()
 	time.Sleep(1000)
 	// Create ssh client config
 	config := &ssh.ClientConfig{
