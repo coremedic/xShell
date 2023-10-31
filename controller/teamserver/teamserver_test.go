@@ -1,44 +1,76 @@
 package teamserver_test
 
 import (
+	"crypto/rand"
 	"net"
 	"testing"
 	"time"
 	"xShell/controller/teamserver"
 
+	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh"
 )
 
 var err error
 
-func TestSSHServer(t *testing.T) {
-	// Get singleton
+func TestTeamServer(t *testing.T) {
+	// Get TeamServer singleton instance
 	ts := teamserver.GetTeamServerInstance()
+
 	// Generate host keys
-	ts.PrivKey, ts.PubKey, _, _, err = teamserver.GenHostKeys()
+	_, _, ts.PrivKey, ts.PubKey, err = teamserver.GenHostKeys()
 	if err != nil {
-		t.Fatal(err.Error())
+		t.Fatal("Failed to generate host keys:", err)
 	}
-	// Start teamserver
+	// Start the TeamServer
 	ts.Start()
-	time.Sleep(1000)
-	// Create ssh client config
-	config := &ssh.ClientConfig{
-		User:            "test",
+	// Wait for the TeamServer to start
+	time.Sleep(2 * time.Second)
+	select {}
+	// Generate ed25519 key pair for the SSH client
+	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal("Failed to generate client keys:", err)
+	}
+
+	// Convert the ed25519 public key to SSH public key
+	sshPubKey, err := ssh.NewPublicKey(pubKey)
+	if err != nil {
+		t.Fatal("Failed to create SSH public key:", err)
+	}
+	// Convert the SSH public key to authorized_keys format
+	authKeyBytes := ssh.MarshalAuthorizedKey(sshPubKey)
+	// Add clients public key to the authorized keys of the "test" user
+	ts.AuthKeys["test"] = append(ts.AuthKeys["test"], authKeyBytes)
+	// Parse the private key for the SSH client
+	privKeySigner, err := ssh.NewSignerFromKey(privKey)
+	if err != nil {
+		t.Fatal("Failed to create SSH signer from private key:", err)
+	}
+	// Create SSH client config
+	clientConfig := &ssh.ClientConfig{
+		User: "test",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(privKeySigner),
+		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	// Connect to server
-	client, err := ssh.Dial("tcp", net.JoinHostPort("localhost", "2222"), config)
+
+	// Attempt to connect to the SSH server
+	client, err := ssh.Dial("tcp", net.JoinHostPort("localhost", "2222"), clientConfig)
 	if err != nil {
-		t.Fatal(err.Error())
+		t.Fatal("Failed to dial:", err)
 	}
-	sshchan, _, err := client.OpenChannel("session", []byte("session"))
+	// Open a new session channel
+	channel, _, err := client.OpenChannel("session", []byte("session"))
 	if err != nil {
-		t.Fatal(err.Error())
+		t.Fatal("Failed to open channel:", err)
 	}
-	sshchan.Write([]byte("clear"))
-	sshchan.Close()
-	time.Sleep(1000)
-	// Close connection
+	// Send a simple command and close the channel
+	channel.Write([]byte("clear"))
+	channel.Close()
+
+	// Give it a moment and then close the client
+	time.Sleep(1 * time.Second)
 	client.Close()
 }

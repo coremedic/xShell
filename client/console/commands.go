@@ -1,23 +1,22 @@
-package teamserver
+package console
 
 import (
 	"os/exec"
 	"runtime"
 )
 
-type Command func([]string) string
+type Command func([]string) error
 
 var CommandMap = map[string]Command{
 	"clear": clear,
 }
 
-func clear([]string) string {
+func clear([]string) error {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/c", "cls")
 	} else {
 		cmd = exec.Command("clear")
 	}
-	cmd.Run()
-	return ""
+	return cmd.Run()
 }

@@ -1,4 +1,4 @@
-package teamserver
+package console
 
 import (
 	"fmt"
@@ -6,11 +6,10 @@ import (
 	"strings"
 
 	"github.com/chzyer/readline"
-	"golang.org/x/crypto/ssh"
 )
 
 var helpMenu string = `
-xShell v2.0 (2023-10-20)
+xShell v0.3.1 (2023-10-31)
 -------------------------------------------
 Main Menu Commands:
 Command                  Description
@@ -32,7 +31,7 @@ kill                     Kills payload process
 -------------------------------------------
 `
 
-func newConsoleSession(channel ssh.Channel) {
+func Start() {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Print("[ERR] Panic in console session")
@@ -52,8 +51,6 @@ func newConsoleSession(channel ssh.Channel) {
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:          "xShell > ",
 		AutoComplete:    autoCompleter,
-		Stdin:           channel,
-		Stdout:          channel,
 		InterruptPrompt: "^C",
 		EOFPrompt:       "exit",
 	})

