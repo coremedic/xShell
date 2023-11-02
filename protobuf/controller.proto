@@ -1,0 +1,25 @@
+syntax = "proto3";
+package protobuf;
+option go_package = "xShell/protobuf";
+
+message Empty {}
+
+service ControllerService {
+    // List all active shells
+    rpc ListShells (ListShellsRequest) returns (ListShellsResponse);
+}
+
+// Request to list all shells
+message ListShellsRequest {}
+
+// Shell info containing ID, IP, and last call back time
+message ShellInfo {
+    string id = 1;
+    string ip = 2;
+    int64 last_call = 3;
+}
+
+// Response with list of all active shells
+message ListShellsResponse {
+    repeated ShellInfo shells = 1;
+}

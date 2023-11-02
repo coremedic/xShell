@@ -36,6 +36,12 @@ func (c *Channel) Write(data []byte) error {
 	return nil
 }
 
+/*
+Read from ssh channel
+
+Reads 8 byte header indicating total data size
+Reads data up to total size
+*/
 func (c *Channel) Read() ([]byte, error) {
 	// Init buffer for 8 byte header
 	header := make([]byte, 8)
