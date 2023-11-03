@@ -24,6 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type ControllerServiceClient interface {
 	// List all active shells
 	ListShells(ctx context.Context, in *ListShellsRequest, opts ...grpc.CallOption) (*ListShellsResponse, error)
+	// Create a new client
+	NewClient(ctx context.Context, in *NewClientRequest, opts ...grpc.CallOption) (*NewClientResponse, error)
 }
 
 type controllerServiceClient struct {
@@ -43,12 +45,23 @@ func (c *controllerServiceClient) ListShells(ctx context.Context, in *ListShells
 	return out, nil
 }
 
+func (c *controllerServiceClient) NewClient(ctx context.Context, in *NewClientRequest, opts ...grpc.CallOption) (*NewClientResponse, error) {
+	out := new(NewClientResponse)
+	err := c.cc.Invoke(ctx, "/protobuf.ControllerService/NewClient", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ControllerServiceServer is the server API for ControllerService service.
 // All implementations must embed UnimplementedControllerServiceServer
 // for forward compatibility
 type ControllerServiceServer interface {
 	// List all active shells
 	ListShells(context.Context, *ListShellsRequest) (*ListShellsResponse, error)
+	// Create a new client
+	NewClient(context.Context, *NewClientRequest) (*NewClientResponse, error)
 	mustEmbedUnimplementedControllerServiceServer()
 }
 
@@ -58,6 +71,9 @@ type UnimplementedControllerServiceServer struct {
 
 func (UnimplementedControllerServiceServer) ListShells(context.Context, *ListShellsRequest) (*ListShellsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListShells not implemented")
+}
+func (UnimplementedControllerServiceServer) NewClient(context.Context, *NewClientRequest) (*NewClientResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NewClient not implemented")
 }
 func (UnimplementedControllerServiceServer) mustEmbedUnimplementedControllerServiceServer() {}
 
@@ -90,6 +106,24 @@ func _ControllerService_ListShells_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ControllerService_NewClient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NewClientRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).NewClient(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protobuf.ControllerService/NewClient",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).NewClient(ctx, req.(*NewClientRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ControllerService_ServiceDesc is the grpc.ServiceDesc for ControllerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +134,10 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListShells",
 			Handler:    _ControllerService_ListShells_Handler,
+		},
+		{
+			MethodName: "NewClient",
+			Handler:    _ControllerService_NewClient_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

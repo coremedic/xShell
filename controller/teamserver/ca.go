@@ -67,11 +67,64 @@ Generate Client certificate and key from CA cert/key
 
 Will generate a client cert/key for use with client mTLS connections.
 
+Args -> CA Certificate, CA Key, Username
+
+Return -> PEM encoded cert and key, error
+*/
+func GenClientCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey, username string) ([]byte, error) {
+	// Generate ecdsa key
+	clientPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	// Cert is valid for 1 year
+	notBefore := time.Now()
+	notAfter := notBefore.Add(365 * 24 * time.Hour)
+
+	// x509 cert template
+	clientCertTemplate := x509.Certificate{
+		SerialNumber: big.NewInt(2),
+		Subject: pkix.Name{
+			Organization: []string{"xShell Client"},
+			CommonName:   username,
+		},
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		BasicConstraintsValid: true,
+	}
+
+	// Create our x509 cert
+	clientCertDER, err := x509.CreateCertificate(rand.Reader, &clientCertTemplate, caCert, &clientPriv.PublicKey, caKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get ecdsa private key from cert
+	clientPrivDER, err := x509.MarshalECPrivateKey(clientPriv)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return PEM encoded cert and key
+	clientCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: clientCertDER})
+	clientKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: clientPrivDER})
+	combinedPEM := append(clientCertPEM, clientKeyPEM...)
+	return combinedPEM, nil
+}
+
+/*
+Generate TeamServer certificate and key from CA cert/key
+
+Will generate a TeamServer cert/key for use with client mTLS connections.
+
 Args -> CA Certificate, CA Key
 
 Return -> PEM encoded cert, PEM endcoded key, error
 */
-func GenClientCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) ([]byte, []byte, error) {
+func GenTeamServerCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) ([]byte, []byte, error) {
 	// Generate ecdsa key
 	clientPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
@@ -86,11 +139,10 @@ func GenClientCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) ([]byte, [
 	clientCertTemplate := x509.Certificate{
 		SerialNumber: big.NewInt(2),
 		Subject: pkix.Name{
-			Organization: []string{"xShell Client"},
+			Organization: []string{"xShell TeamServer"},
 		},
-		NotBefore: notBefore,
-		NotAfter:  notAfter,
-
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,

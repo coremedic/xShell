@@ -2,15 +2,46 @@ syntax = "proto3";
 package protobuf;
 option go_package = "xShell/protobuf";
 
-message Empty {}
+/*
+RPC service definitions
+*/
 
 service ControllerService {
     // List all active shells
     rpc ListShells (ListShellsRequest) returns (ListShellsResponse);
+    // Create a new client
+    rpc NewClient (NewClientRequest) returns (NewClientResponse);
 }
+
+/*
+RPC request definitions
+*/
 
 // Request to list all shells
 message ListShellsRequest {}
+
+// Request to generate a new client 
+message NewClientRequest {
+    string username = 1;
+}
+
+/*
+RPC response definitions
+*/
+
+// Response with list of all active shells
+message ListShellsResponse {
+    repeated ShellInfo shells = 1;
+}
+
+// Response for a NewClientRequest, returns client cert as byte array
+message NewClientResponse {
+    bytes cert = 1;
+}
+
+/*
+RPC misc definitions
+*/
 
 // Shell info containing ID, IP, and last call back time
 message ShellInfo {
@@ -19,7 +50,5 @@ message ShellInfo {
     int64 last_call = 3;
 }
 
-// Response with list of all active shells
-message ListShellsResponse {
-    repeated ShellInfo shells = 1;
-}
+// Empty message
+message Empty {}

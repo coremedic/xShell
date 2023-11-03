@@ -20,44 +20,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Empty struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *Empty) Reset() {
-	*x = Empty{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_protobuf_controller_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Empty) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Empty) ProtoMessage() {}
-
-func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_protobuf_controller_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Empty.ProtoReflect.Descriptor instead.
-func (*Empty) Descriptor() ([]byte, []int) {
-	return file_protobuf_controller_proto_rawDescGZIP(), []int{0}
-}
-
 // Request to list all shells
 type ListShellsRequest struct {
 	state         protoimpl.MessageState
@@ -68,7 +30,7 @@ type ListShellsRequest struct {
 func (x *ListShellsRequest) Reset() {
 	*x = ListShellsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protobuf_controller_proto_msgTypes[1]
+		mi := &file_protobuf_controller_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -81,7 +43,7 @@ func (x *ListShellsRequest) String() string {
 func (*ListShellsRequest) ProtoMessage() {}
 
 func (x *ListShellsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protobuf_controller_proto_msgTypes[1]
+	mi := &file_protobuf_controller_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -94,7 +56,151 @@ func (x *ListShellsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListShellsRequest.ProtoReflect.Descriptor instead.
 func (*ListShellsRequest) Descriptor() ([]byte, []int) {
+	return file_protobuf_controller_proto_rawDescGZIP(), []int{0}
+}
+
+// Request to generate a new client
+type NewClientRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Username string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+}
+
+func (x *NewClientRequest) Reset() {
+	*x = NewClientRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_controller_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *NewClientRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NewClientRequest) ProtoMessage() {}
+
+func (x *NewClientRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_controller_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NewClientRequest.ProtoReflect.Descriptor instead.
+func (*NewClientRequest) Descriptor() ([]byte, []int) {
 	return file_protobuf_controller_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *NewClientRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+// Response with list of all active shells
+type ListShellsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Shells []*ShellInfo `protobuf:"bytes,1,rep,name=shells,proto3" json:"shells,omitempty"`
+}
+
+func (x *ListShellsResponse) Reset() {
+	*x = ListShellsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_controller_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListShellsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListShellsResponse) ProtoMessage() {}
+
+func (x *ListShellsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_controller_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListShellsResponse.ProtoReflect.Descriptor instead.
+func (*ListShellsResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_controller_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListShellsResponse) GetShells() []*ShellInfo {
+	if x != nil {
+		return x.Shells
+	}
+	return nil
+}
+
+// Response for a NewClientRequest, returns client cert as byte array
+type NewClientResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Cert []byte `protobuf:"bytes,1,opt,name=cert,proto3" json:"cert,omitempty"`
+}
+
+func (x *NewClientResponse) Reset() {
+	*x = NewClientResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_controller_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *NewClientResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NewClientResponse) ProtoMessage() {}
+
+func (x *NewClientResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_controller_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NewClientResponse.ProtoReflect.Descriptor instead.
+func (*NewClientResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_controller_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *NewClientResponse) GetCert() []byte {
+	if x != nil {
+		return x.Cert
+	}
+	return nil
 }
 
 // Shell info containing ID, IP, and last call back time
@@ -111,7 +217,7 @@ type ShellInfo struct {
 func (x *ShellInfo) Reset() {
 	*x = ShellInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protobuf_controller_proto_msgTypes[2]
+		mi := &file_protobuf_controller_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -124,7 +230,7 @@ func (x *ShellInfo) String() string {
 func (*ShellInfo) ProtoMessage() {}
 
 func (x *ShellInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_protobuf_controller_proto_msgTypes[2]
+	mi := &file_protobuf_controller_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -137,7 +243,7 @@ func (x *ShellInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShellInfo.ProtoReflect.Descriptor instead.
 func (*ShellInfo) Descriptor() ([]byte, []int) {
-	return file_protobuf_controller_proto_rawDescGZIP(), []int{2}
+	return file_protobuf_controller_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ShellInfo) GetId() string {
@@ -161,32 +267,30 @@ func (x *ShellInfo) GetLastCall() int64 {
 	return 0
 }
 
-// Response with list of all active shells
-type ListShellsResponse struct {
+// Empty message
+type Empty struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	Shells []*ShellInfo `protobuf:"bytes,1,rep,name=shells,proto3" json:"shells,omitempty"`
 }
 
-func (x *ListShellsResponse) Reset() {
-	*x = ListShellsResponse{}
+func (x *Empty) Reset() {
+	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_protobuf_controller_proto_msgTypes[3]
+		mi := &file_protobuf_controller_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *ListShellsResponse) String() string {
+func (x *Empty) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListShellsResponse) ProtoMessage() {}
+func (*Empty) ProtoMessage() {}
 
-func (x *ListShellsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protobuf_controller_proto_msgTypes[3]
+func (x *Empty) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_controller_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,16 +301,9 @@ func (x *ListShellsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListShellsResponse.ProtoReflect.Descriptor instead.
-func (*ListShellsResponse) Descriptor() ([]byte, []int) {
-	return file_protobuf_controller_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *ListShellsResponse) GetShells() []*ShellInfo {
-	if x != nil {
-		return x.Shells
-	}
-	return nil
+// Deprecated: Use Empty.ProtoReflect.Descriptor instead.
+func (*Empty) Descriptor() ([]byte, []int) {
+	return file_protobuf_controller_proto_rawDescGZIP(), []int{5}
 }
 
 var File_protobuf_controller_proto protoreflect.FileDescriptor
@@ -214,23 +311,33 @@ var File_protobuf_controller_proto protoreflect.FileDescriptor
 var file_protobuf_controller_proto_rawDesc = []byte{
 	0x0a, 0x19, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x63, 0x6f, 0x6e, 0x74, 0x72,
 	0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x13,
-	0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x22, 0x48, 0x0a, 0x09, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x49, 0x6e, 0x66, 0x6f,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x70,
-	0x12, 0x1b, 0x0a, 0x09, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x63, 0x61, 0x6c, 0x6c, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x03, 0x52, 0x08, 0x6c, 0x61, 0x73, 0x74, 0x43, 0x61, 0x6c, 0x6c, 0x22, 0x41, 0x0a,
-	0x12, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x2b, 0x0a, 0x06, 0x73, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x18, 0x01, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53,
-	0x68, 0x65, 0x6c, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x06, 0x73, 0x68, 0x65, 0x6c, 0x6c, 0x73,
-	0x32, 0x5c, 0x0a, 0x11, 0x43, 0x6f, 0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0a, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65,
-	0x6c, 0x6c, 0x73, 0x12, 0x1b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x4c,
-	0x69, 0x73, 0x74, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x1c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x4c, 0x69, 0x73, 0x74,
-	0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x11,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x22, 0x13, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65,
+	0x6c, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x2e, 0x0a, 0x10, 0x4e, 0x65,
+	0x77, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1a,
+	0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x41, 0x0a, 0x12, 0x4c, 0x69,
+	0x73, 0x74, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x2b, 0x0a, 0x06, 0x73, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x13, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x68, 0x65, 0x6c,
+	0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x06, 0x73, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x22, 0x27, 0x0a,
+	0x11, 0x4e, 0x65, 0x77, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x65, 0x72, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c,
+	0x52, 0x04, 0x63, 0x65, 0x72, 0x74, 0x22, 0x48, 0x0a, 0x09, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x49,
+	0x6e, 0x66, 0x6f, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x02, 0x69, 0x64, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x02, 0x69, 0x70, 0x12, 0x1b, 0x0a, 0x09, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x63, 0x61, 0x6c, 0x6c,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x6c, 0x61, 0x73, 0x74, 0x43, 0x61, 0x6c, 0x6c,
+	0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x32, 0xa2, 0x01, 0x0a, 0x11, 0x43, 0x6f,
+	0x6e, 0x74, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12,
+	0x47, 0x0a, 0x0a, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73, 0x12, 0x1b, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65,
+	0x6c, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x44, 0x0a, 0x09, 0x4e, 0x65, 0x77, 0x43,
+	0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x1a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x4e, 0x65, 0x77, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x1b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x4e, 0x65, 0x77,
+	0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x11,
 	0x5a, 0x0f, 0x78, 0x53, 0x68, 0x65, 0x6c, 0x6c, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
 	0x66, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
@@ -247,19 +354,23 @@ func file_protobuf_controller_proto_rawDescGZIP() []byte {
 	return file_protobuf_controller_proto_rawDescData
 }
 
-var file_protobuf_controller_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_protobuf_controller_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_protobuf_controller_proto_goTypes = []interface{}{
-	(*Empty)(nil),              // 0: protobuf.Empty
-	(*ListShellsRequest)(nil),  // 1: protobuf.ListShellsRequest
-	(*ShellInfo)(nil),          // 2: protobuf.ShellInfo
-	(*ListShellsResponse)(nil), // 3: protobuf.ListShellsResponse
+	(*ListShellsRequest)(nil),  // 0: protobuf.ListShellsRequest
+	(*NewClientRequest)(nil),   // 1: protobuf.NewClientRequest
+	(*ListShellsResponse)(nil), // 2: protobuf.ListShellsResponse
+	(*NewClientResponse)(nil),  // 3: protobuf.NewClientResponse
+	(*ShellInfo)(nil),          // 4: protobuf.ShellInfo
+	(*Empty)(nil),              // 5: protobuf.Empty
 }
 var file_protobuf_controller_proto_depIdxs = []int32{
-	2, // 0: protobuf.ListShellsResponse.shells:type_name -> protobuf.ShellInfo
-	1, // 1: protobuf.ControllerService.ListShells:input_type -> protobuf.ListShellsRequest
-	3, // 2: protobuf.ControllerService.ListShells:output_type -> protobuf.ListShellsResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
+	4, // 0: protobuf.ListShellsResponse.shells:type_name -> protobuf.ShellInfo
+	0, // 1: protobuf.ControllerService.ListShells:input_type -> protobuf.ListShellsRequest
+	1, // 2: protobuf.ControllerService.NewClient:input_type -> protobuf.NewClientRequest
+	2, // 3: protobuf.ControllerService.ListShells:output_type -> protobuf.ListShellsResponse
+	3, // 4: protobuf.ControllerService.NewClient:output_type -> protobuf.NewClientResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -272,18 +383,6 @@ func file_protobuf_controller_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_protobuf_controller_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Empty); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_protobuf_controller_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListShellsRequest); i {
 			case 0:
 				return &v.state
@@ -295,8 +394,20 @@ func file_protobuf_controller_proto_init() {
 				return nil
 			}
 		}
+		file_protobuf_controller_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*NewClientRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_protobuf_controller_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ShellInfo); i {
+			switch v := v.(*ListShellsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -308,7 +419,31 @@ func file_protobuf_controller_proto_init() {
 			}
 		}
 		file_protobuf_controller_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListShellsResponse); i {
+			switch v := v.(*NewClientResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protobuf_controller_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ShellInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protobuf_controller_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -326,7 +461,7 @@ func file_protobuf_controller_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_protobuf_controller_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
