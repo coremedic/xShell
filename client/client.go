@@ -1,38 +1,26 @@
-package client
+package main
 
 import (
-	_ "embed"
-	"fmt"
-	"os"
-	"strings"
-
-	"golang.org/x/crypto/ssh"
+	"xShell/client/console"
 )
 
-//go:embed "config"
-var config []byte
+var err error
 
 func main() {
-	if args := os.Args[1]; args != "" {
-		parts := strings.Split(args, "@")
-		if len(parts) < 2 {
-			fmt.Println("Invalid command")
-			os.Exit(1)
-		}
-		user := parts[0]
-		host := parts[1]
-		config := &ssh.ClientConfig{
-			User: user,
-			Auth: []ssh.AuthMethod{
-				ssh.Password("password"),
-			},
-			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		}
-		client, err := ssh.Dial("tcp", host+":1991", config)
-		if err != nil {
-			fmt.Println("Failed to dial: ", err)
-			os.Exit(1)
-		}
-		defer client.Close()
-	}
+	// // Check if proper flags have been passed
+	// if len(os.Args) < 3 {
+	// 	log.Fatalf("Usage: './%s [teamserver_ip] [path_to_client_cert]'", os.Args[0])
+	// }
+	// // Fetch Link singleton instance
+	// linkInstance := link.GetLinkInstance()
+	// // Read the PEM encoded certificate and key from os.Args[2]
+	// linkInstance.Cert, err = os.ReadFile(os.Args[2])
+	// if err != nil {
+	// 	log.Fatalf("Failed to read the certificate file: %v", err)
+	// }
+	// // Set Link host address, fetch from first arguement
+	// linkInstance.Host = os.Args[1]
+	console.Start()
+	select {}
+
 }
