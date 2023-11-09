@@ -20,7 +20,5 @@ func main() {
 	// }
 	// // Set Link host address, fetch from first arguement
 	// linkInstance.Host = os.Args[1]
-	console.Start()
-	select {}
-
+	console.StartLegacyUI()
 }

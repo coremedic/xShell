@@ -88,4 +88,6 @@ func main() {
 	logger.NewLogger(".xshell/controller.log")
 	// Close at program exit
 	defer logger.Close()
+	// Start teamserver
+	ts := teamserver.TeamServer{}
 }

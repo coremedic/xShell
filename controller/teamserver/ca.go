@@ -69,10 +69,10 @@ Will generate a client cert/key for use with client mTLS connections.
 
 Args -> CA Certificate, CA Key, Username
 
-Return -> PEM encoded cert and key, error
+Return -> PEM encoded fullchain certificate (CA cert, Client cert, Client key), error
 */
 func GenClientCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey, username string) ([]byte, error) {
-	// Generate ecdsa key
+	// Generate ecdsa key for the client
 	clientPriv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
 		return nil, err
@@ -82,9 +82,9 @@ func GenClientCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey, username s
 	notBefore := time.Now()
 	notAfter := notBefore.Add(365 * 24 * time.Hour)
 
-	// x509 cert template
+	// x509 cert template for the client
 	clientCertTemplate := x509.Certificate{
-		SerialNumber: big.NewInt(2),
+		SerialNumber: big.NewInt(2), // Make sure to use a unique serial number for each cert
 		Subject: pkix.Name{
 			Organization: []string{"xShell Client"},
 			CommonName:   username,
@@ -96,23 +96,30 @@ func GenClientCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey, username s
 		BasicConstraintsValid: true,
 	}
 
-	// Create our x509 cert
+	// Create the client certificate, signed by the CA
 	clientCertDER, err := x509.CreateCertificate(rand.Reader, &clientCertTemplate, caCert, &clientPriv.PublicKey, caKey)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get ecdsa private key from cert
+	// Marshal the client private key into DER format
 	clientPrivDER, err := x509.MarshalECPrivateKey(clientPriv)
 	if err != nil {
 		return nil, err
 	}
 
-	// Return PEM encoded cert and key
+	// Encode the client certificate to PEM
 	clientCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: clientCertDER})
+	// Encode the client key to PEM
 	clientKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: clientPrivDER})
-	combinedPEM := append(clientCertPEM, clientKeyPEM...)
-	return combinedPEM, nil
+	// Encode the CA certificate to PEM
+	caCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caCert.Raw}) // Note the use of caCert.Raw
+
+	// Concatenate the CA cert, client cert, and client key PEMs
+	fullChainPEM := append(caCertPEM, clientCertPEM...)
+	fullChainPEM = append(fullChainPEM, clientKeyPEM...)
+
+	return fullChainPEM, nil
 }
 
 /*

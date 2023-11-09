@@ -29,7 +29,7 @@ CAKey -> Certificate Authority key
 protobuf -> Protobuf service struct
 */
 type TeamServer struct {
-	Port       string `default:"1991"`
+	Port       string `default:":1991"`
 	ServerCert *tls.Certificate
 	CACert     []byte
 	CAKey      []byte

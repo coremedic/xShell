@@ -24,6 +24,12 @@ const _ = grpc.SupportPackageIsVersion7
 type ControllerServiceClient interface {
 	// List all active shells
 	ListShells(ctx context.Context, in *ListShellsRequest, opts ...grpc.CallOption) (*ListShellsResponse, error)
+	// Request shells log data in full
+	ShellLog(ctx context.Context, in *ShellLogRequest, opts ...grpc.CallOption) (*ShellLogResponse, error)
+	// Stream shells log data
+	StreamShellLog(ctx context.Context, in *StreamShellLogRequest, opts ...grpc.CallOption) (ControllerService_StreamShellLogClient, error)
+	// Task shell to execute command
+	ShellExec(ctx context.Context, in *ShellExecRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Create a new client
 	NewClient(ctx context.Context, in *NewClientRequest, opts ...grpc.CallOption) (*NewClientResponse, error)
 }
@@ -45,6 +51,56 @@ func (c *controllerServiceClient) ListShells(ctx context.Context, in *ListShells
 	return out, nil
 }
 
+func (c *controllerServiceClient) ShellLog(ctx context.Context, in *ShellLogRequest, opts ...grpc.CallOption) (*ShellLogResponse, error) {
+	out := new(ShellLogResponse)
+	err := c.cc.Invoke(ctx, "/protobuf.ControllerService/ShellLog", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) StreamShellLog(ctx context.Context, in *StreamShellLogRequest, opts ...grpc.CallOption) (ControllerService_StreamShellLogClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ControllerService_ServiceDesc.Streams[0], "/protobuf.ControllerService/StreamShellLog", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &controllerServiceStreamShellLogClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ControllerService_StreamShellLogClient interface {
+	Recv() (*StreamShellLogResposne, error)
+	grpc.ClientStream
+}
+
+type controllerServiceStreamShellLogClient struct {
+	grpc.ClientStream
+}
+
+func (x *controllerServiceStreamShellLogClient) Recv() (*StreamShellLogResposne, error) {
+	m := new(StreamShellLogResposne)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *controllerServiceClient) ShellExec(ctx context.Context, in *ShellExecRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/protobuf.ControllerService/ShellExec", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *controllerServiceClient) NewClient(ctx context.Context, in *NewClientRequest, opts ...grpc.CallOption) (*NewClientResponse, error) {
 	out := new(NewClientResponse)
 	err := c.cc.Invoke(ctx, "/protobuf.ControllerService/NewClient", in, out, opts...)
@@ -60,6 +116,12 @@ func (c *controllerServiceClient) NewClient(ctx context.Context, in *NewClientRe
 type ControllerServiceServer interface {
 	// List all active shells
 	ListShells(context.Context, *ListShellsRequest) (*ListShellsResponse, error)
+	// Request shells log data in full
+	ShellLog(context.Context, *ShellLogRequest) (*ShellLogResponse, error)
+	// Stream shells log data
+	StreamShellLog(*StreamShellLogRequest, ControllerService_StreamShellLogServer) error
+	// Task shell to execute command
+	ShellExec(context.Context, *ShellExecRequest) (*Empty, error)
 	// Create a new client
 	NewClient(context.Context, *NewClientRequest) (*NewClientResponse, error)
 	mustEmbedUnimplementedControllerServiceServer()
@@ -71,6 +133,15 @@ type UnimplementedControllerServiceServer struct {
 
 func (UnimplementedControllerServiceServer) ListShells(context.Context, *ListShellsRequest) (*ListShellsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListShells not implemented")
+}
+func (UnimplementedControllerServiceServer) ShellLog(context.Context, *ShellLogRequest) (*ShellLogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ShellLog not implemented")
+}
+func (UnimplementedControllerServiceServer) StreamShellLog(*StreamShellLogRequest, ControllerService_StreamShellLogServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamShellLog not implemented")
+}
+func (UnimplementedControllerServiceServer) ShellExec(context.Context, *ShellExecRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ShellExec not implemented")
 }
 func (UnimplementedControllerServiceServer) NewClient(context.Context, *NewClientRequest) (*NewClientResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NewClient not implemented")
@@ -106,6 +177,63 @@ func _ControllerService_ListShells_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ControllerService_ShellLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ShellLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).ShellLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protobuf.ControllerService/ShellLog",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).ShellLog(ctx, req.(*ShellLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_StreamShellLog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamShellLogRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ControllerServiceServer).StreamShellLog(m, &controllerServiceStreamShellLogServer{stream})
+}
+
+type ControllerService_StreamShellLogServer interface {
+	Send(*StreamShellLogResposne) error
+	grpc.ServerStream
+}
+
+type controllerServiceStreamShellLogServer struct {
+	grpc.ServerStream
+}
+
+func (x *controllerServiceStreamShellLogServer) Send(m *StreamShellLogResposne) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _ControllerService_ShellExec_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ShellExecRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).ShellExec(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protobuf.ControllerService/ShellExec",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).ShellExec(ctx, req.(*ShellExecRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ControllerService_NewClient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(NewClientRequest)
 	if err := dec(in); err != nil {
@@ -136,10 +264,24 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ControllerService_ListShells_Handler,
 		},
 		{
+			MethodName: "ShellLog",
+			Handler:    _ControllerService_ShellLog_Handler,
+		},
+		{
+			MethodName: "ShellExec",
+			Handler:    _ControllerService_ShellExec_Handler,
+		},
+		{
 			MethodName: "NewClient",
 			Handler:    _ControllerService_NewClient_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamShellLog",
+			Handler:       _ControllerService_StreamShellLog_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "protobuf/controller.proto",
 }

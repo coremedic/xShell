@@ -9,6 +9,12 @@ RPC service definitions
 service ControllerService {
     // List all active shells
     rpc ListShells (ListShellsRequest) returns (ListShellsResponse);
+    // Request shells log data in full
+    rpc ShellLog (ShellLogRequest) returns (ShellLogResponse);
+    // Stream shells log data
+    rpc StreamShellLog (StreamShellLogRequest) returns (stream StreamShellLogResposne);
+    // Task shell to execute command
+    rpc ShellExec (ShellExecRequest) returns (Empty);
     // Create a new client
     rpc NewClient (NewClientRequest) returns (NewClientResponse);
 }
@@ -25,6 +31,21 @@ message NewClientRequest {
     string username = 1;
 }
 
+// Request for shells log data
+message ShellLogRequest {
+    string shell = 1;
+}
+
+// Request to stream shells log data
+message StreamShellLogRequest {
+    string shell = 1;
+}
+
+// Request to execute command on shell host
+message ShellExecRequest {
+    string command = 1;
+}
+
 /*
 RPC response definitions
 */
@@ -37,6 +58,16 @@ message ListShellsResponse {
 // Response for a NewClientRequest, returns client cert as byte array
 message NewClientResponse {
     bytes cert = 1;
+}
+
+// Response for shell log
+message ShellLogResponse {
+    bytes shellLog = 1;
+}
+
+// Response to stream shells log
+message StreamShellLogResposne {
+    string log = 1;
 }
 
 /*
