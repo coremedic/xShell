@@ -10,6 +10,7 @@ import (
 	"xShell/internal/logger"
 	"xShell/protobuf"
 
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/peer"
@@ -29,7 +30,7 @@ CAKey -> Certificate Authority key
 protobuf -> Protobuf service struct
 */
 type TeamServer struct {
-	Port       string `default:":1991"`
+	Port       string `default:"1991"`
 	ServerCert *tls.Certificate
 	CACert     []byte
 	CAKey      []byte
@@ -46,13 +47,13 @@ func (ts *TeamServer) Start() {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("%v", r)
-				log.Println("Panic in TeamServer: Recovered")
+				logger.Log(logger.PANIC, fmt.Sprintf("%v", r))
 			}
 		}()
 		// Create new x509 cert pool
 		certPool := x509.NewCertPool()
 		if ok := certPool.AppendCertsFromPEM(ts.CACert); !ok {
+			logger.Log(logger.CRITICAL, "Failed to append client CA cert")
 			log.Fatal("Failed to append client CA cert")
 		}
 		// Create new TLS creds for mTLS auth
@@ -64,25 +65,25 @@ func (ts *TeamServer) Start() {
 		// Create new gRPC server
 		grpcServer := grpc.NewServer(
 			grpc.Creds(creds),
-			// Add logging middleware
-			grpc.UnaryInterceptor(clientCertInterceptor),
+			// Add client logging and failed auth interceptors
+			grpc.UnaryInterceptor(chainUnaryServerInterceptors(clientCertInterceptor, authErrorInterceptor)),
 		)
 		// Register gRPC service
 		protobuf.RegisterControllerServiceServer(grpcServer, ts)
 		// Listen for incoming connections
-		listener, err := net.Listen("tcp", ts.Port)
+		listener, err := net.Listen("tcp", net.JoinHostPort("0.0.0.0", ts.Port))
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 		// Pass listener to gRPC service
 		if err := grpcServer.Serve(listener); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}()
 }
 
 /*
-Middleware for logging client gRPC requests.
+gRPC server interceptor for logging client gRPC requests.
 */
 func clientCertInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	peer, ok := peer.FromContext(ctx)
@@ -90,9 +91,53 @@ func clientCertInterceptor(ctx context.Context, req interface{}, info *grpc.Unar
 		if tlsInfo, ok := peer.AuthInfo.(credentials.TLSInfo); ok {
 			for _, cert := range tlsInfo.State.PeerCertificates {
 				username := cert.Subject.CommonName
-				logger.Log(logger.AUDIT, fmt.Sprintf("%s called: %v", username, req))
+				if pb, ok := req.(proto.Message); ok {
+					logger.Log(logger.AUDIT, fmt.Sprintf("%s called: %v", username, proto.MarshalTextString(pb)))
+				} else {
+					logger.Log(logger.AUDIT, fmt.Sprintf("%s called a function but request could not be logged", username))
+				}
 			}
 		}
 	}
 	return handler(ctx, req)
+}
+
+/*
+gRPC server interceptor for logging failed mTLS authentications
+*/
+func authErrorInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	resp, err := handler(ctx, req)
+	if err != nil {
+		peer, ok := peer.FromContext(ctx)
+		if ok && peer.AuthInfo != nil {
+			if tlsInfo, ok := peer.AuthInfo.(credentials.TLSInfo); ok {
+				for _, cert := range tlsInfo.State.PeerCertificates {
+					username := cert.Subject.CommonName
+					logger.Log(logger.WARNING, fmt.Sprintf("mTLS auth failed for user %s: %v", username, err))
+				}
+			}
+		}
+	}
+	return resp, err
+}
+
+/*
+Chain multiple interceptors into one handler
+*/
+func chainUnaryServerInterceptors(interceptors ...grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		for i := len(interceptors) - 1; i >= 0; i-- {
+			handler = createHandler(interceptors[i], handler)
+		}
+		return handler(ctx, req)
+	}
+}
+
+/*
+Create handler with interceptor
+*/
+func createHandler(interceptor grpc.UnaryServerInterceptor, handler grpc.UnaryHandler) grpc.UnaryHandler {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
+		return interceptor(ctx, req, &grpc.UnaryServerInfo{}, handler)
+	}
 }

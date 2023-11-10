@@ -18,8 +18,22 @@ type Shell struct {
 	Ip string
 	// LastCall -> Time represented as 64bit integer
 	LastCall int64
-	// Cmds -> Slice of json marshaled commands for shell
-	Cmds [][]byte
+	// Tasks -> Slice of Tasks queued for Shell
+	Tasks []*Task
+}
+
+/*
+Task struct
+
+Operation -> Task operation (exec, whoami, ps, etc)
+
+Arguments -> Task operation arguments
+*/
+type Task struct {
+	// Operation -> Task operation (exec, whoami, ps, etc)
+	Operation string
+	// Arguments -> Task operation arguments
+	Arguments []string
 }
 
 /*
@@ -63,15 +77,31 @@ func (s *SafeShellMap) Get(shellId string) (*Shell, error) {
 
 /*
 Delete Shell from map by Shell Id
-
-Return -> error
 */
-func (s *SafeShellMap) Delete(shellId string) error {
+func (s *SafeShellMap) Delete(shellId string) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	if _, exists := s.Shells[shellId]; exists {
-		delete(s.Shells, shellId)
-		return nil
+	delete(s.Shells, shellId)
+}
+
+/*
+Add Task to Shell
+*/
+func (s *SafeShellMap) AddTask(shellId string, task Task) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	if shell, exists := s.Shells[shellId]; exists {
+		shell.Tasks = append(shell.Tasks, &task)
 	}
-	return fmt.Errorf("shell '%s' doesnt exist", shellId)
+}
+
+/*
+Clear Task queue for shell
+*/
+func (s *SafeShellMap) ClearTasks(shellId string) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	if shell, exists := s.Shells[shellId]; exists {
+		shell.Tasks = make([]*Task, 0)
+	}
 }

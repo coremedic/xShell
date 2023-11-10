@@ -1,93 +1,191 @@
 package main
 
 import (
+	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"log"
 	"os"
+	"xShell/controller/c2"
 	"xShell/controller/teamserver"
 	"xShell/internal/logger"
 )
 
 const (
-	certDir        = ".xshell/"
-	caCertPath     = certDir + "ca-cert.pem"
-	caKeyPath      = certDir + "ca-key.pem"
-	serverCertPath = certDir + "teamserver-cert.pem"
-	serverKeyPath  = certDir + "teamserver-key.pem"
-	rootCertPath   = certDir + "root-cert.pem"
+	confDir        = ".xshell/"
+	logDir         = confDir + "log/"
+	caCertPath     = confDir + "ca-cert.pem"
+	caKeyPath      = confDir + "ca-key.pem"
+	serverCertPath = confDir + "teamserver-cert.pem"
+	serverKeyPath  = confDir + "teamserver-key.pem"
+	rootCertPath   = confDir + "root-cert.pem"
+)
+
+var (
+	err      error
+	ts       teamserver.TeamServer = teamserver.TeamServer{}
+	listener c2.C2                 = c2.C2{}
 )
 
 func init() {
-	// Check if .xshell directory exists, if not create it
-	if _, err := os.Stat(certDir); os.IsNotExist(err) {
-		os.Mkdir(certDir, 0700)
+	// Create .xshell directory if it does not exist
+	if _, err := os.Stat(confDir); os.IsNotExist(err) {
+		if err := os.Mkdir(confDir, 0700); err != nil {
+			log.Fatalf("Failed to create directory %s: %v", confDir, err)
+		}
 	}
 
-	// Check if CA cert exists, if not create it
+	// Create log directory if it does not exist
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		if err := os.Mkdir(logDir, 0700); err != nil {
+			log.Fatalf("Failed to create directory %s: %v", confDir, err)
+		}
+	}
+
+	// Create CA certificate and key if they do not exist
 	if _, err := os.Stat(caCertPath); os.IsNotExist(err) {
 		cert, key, err := teamserver.GenCACert()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to generate CA cert: %v", err)
 		}
-		os.WriteFile(caCertPath, cert, 0644)
-		os.WriteFile(caKeyPath, key, 0644)
+		if err := os.WriteFile(caCertPath, cert, 0644); err != nil {
+			log.Fatalf("Failed to write CA cert: %v", err)
+		}
+		if err := os.WriteFile(caKeyPath, key, 0644); err != nil {
+			log.Fatalf("Failed to write CA key: %v", err)
+		}
 	}
-	// Check if server cert exists, if not create it
+
+	// Create server certificate and key if they do not exist
 	if _, err := os.Stat(serverCertPath); os.IsNotExist(err) {
-		caCertBytes, err := os.ReadFile(caCertPath)
+		caCertPEM, err := os.ReadFile(caCertPath)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to read CA cert: %v", err)
 		}
-		caCert, err := x509.ParseCertificate(caCertBytes)
+		caKeyPEM, err := os.ReadFile(caKeyPath)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to read CA key: %v", err)
 		}
-		caKeyBytes, err := os.ReadFile(caKeyPath)
+
+		caCertDER, _ := pem.Decode(caCertPEM)
+		if caCertDER == nil {
+			log.Fatalf("Failed to decode CA cert PEM")
+		}
+		caKeyDER, _ := pem.Decode(caKeyPEM)
+		if caKeyDER == nil {
+			log.Fatalf("Failed to decode CA key PEM")
+		}
+
+		caCert, err := x509.ParseCertificate(caCertDER.Bytes)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to parse CA cert: %v", err)
 		}
-		caKey, err := x509.ParseECPrivateKey(caKeyBytes)
+		caKey, err := x509.ParseECPrivateKey(caKeyDER.Bytes)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to parse CA key: %v", err)
 		}
+
 		serverCert, serverKey, err := teamserver.GenTeamServerCert(caCert, caKey)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to generate server cert: %v", err)
 		}
-		os.WriteFile(serverCertPath, serverCert, 0644)
-		os.WriteFile(serverKeyPath, serverKey, 0644)
+		if err := os.WriteFile(serverCertPath, serverCert, 0644); err != nil {
+			log.Fatalf("Failed to write server cert: %v", err)
+		}
+		if err := os.WriteFile(serverKeyPath, serverKey, 0644); err != nil {
+			log.Fatalf("Failed to write server key: %v", err)
+		}
 	}
-	// Check if root user cert exits, if not create it
+
+	// Create root user certificate if it does not exist
 	if _, err := os.Stat(rootCertPath); os.IsNotExist(err) {
-		caCertBytes, err := os.ReadFile(caCertPath)
+		caCertPEM, err := os.ReadFile(caCertPath)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to read CA cert: %v", err)
 		}
-		caCert, err := x509.ParseCertificate(caCertBytes)
+		caKeyPEM, err := os.ReadFile(caKeyPath)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to read CA key: %v", err)
 		}
-		caKeyBytes, err := os.ReadFile(caKeyPath)
+
+		caCertDER, _ := pem.Decode(caCertPEM)
+		if caCertDER == nil {
+			log.Fatalf("Failed to decode CA cert PEM")
+		}
+		caKeyDER, _ := pem.Decode(caKeyPEM)
+		if caKeyDER == nil {
+			log.Fatalf("Failed to decode CA key PEM")
+		}
+
+		caCert, err := x509.ParseCertificate(caCertDER.Bytes)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to parse CA cert: %v", err)
 		}
-		caKey, err := x509.ParseECPrivateKey(caKeyBytes)
+		caKey, err := x509.ParseECPrivateKey(caKeyDER.Bytes)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to parse CA key: %v", err)
 		}
+
 		clientCert, err := teamserver.GenClientCert(caCert, caKey, "root")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to generate client cert: %v", err)
 		}
-		os.WriteFile(rootCertPath, clientCert, 0644)
+		if err := os.WriteFile(rootCertPath, clientCert, 0644); err != nil {
+			log.Fatalf("Failed to write client cert: %v", err)
+		}
 	}
+
+	caCertPEM, err := os.ReadFile(caCertPath)
+	if err != nil {
+		log.Fatalf("Failed to read CA cert: %v", err)
+	}
+	caKeyPEM, err := os.ReadFile(caKeyPath)
+	if err != nil {
+		log.Fatalf("Failed to read CA key: %v", err)
+	}
+
+	// Assign key and cert to the teamserver instance fields
+	ts.CACert = caCertPEM
+	ts.CAKey = caKeyPEM
+
+	// Decode server certificate and key from PEM to DER for serverCert
+	serverCertPEM, err := os.ReadFile(serverCertPath)
+	if err != nil {
+		log.Fatalf("Failed to read server cert: %v", err)
+	}
+	serverKeyPEM, err := os.ReadFile(serverKeyPath)
+	if err != nil {
+		log.Fatalf("Failed to read server key: %v", err)
+	}
+
+	serverCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
+	if err != nil {
+		log.Fatalf("Failed to load server key pair: %v", err)
+	}
+
+	// Set the server certificate in the teamserver instance
+	ts.ServerCert = &serverCert
 }
 
 func main() {
 	// Create new logger
-	logger.NewLogger(".xshell/controller.log")
+	logger.NewLogger(".xshell/log/controller.log")
+	// Set log level
+	if os.Args[1] == "--debug" || os.Args[1] == "-d" {
+		logger.LogLevel = logger.DEBUG
+	} else {
+		logger.LogLevel = logger.WARNING
+	}
+	logger.LogLevel = logger.DEBUG
 	// Close at program exit
 	defer logger.Close()
-	// Start teamserver
-	ts := teamserver.TeamServer{}
+	ts.Port = "1991"
+	// Start TeamServer, runs as goroutine
+	ts.Start()
+	// Start C2 listener
+	listener.CertFile = serverCertPath
+	listener.KeyFile = serverKeyPath
+	listener.Port = "1848"
+	listener.Type = "https"
+	listener.Start()
 }

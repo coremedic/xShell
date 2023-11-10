@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ControllerServiceClient interface {
+	// Request C2 status
+	C2Status(ctx context.Context, in *C2StatusRequest, opts ...grpc.CallOption) (*C2StatusResponse, error)
 	// List all active shells
 	ListShells(ctx context.Context, in *ListShellsRequest, opts ...grpc.CallOption) (*ListShellsResponse, error)
 	// Request shells log data in full
@@ -40,6 +42,15 @@ type controllerServiceClient struct {
 
 func NewControllerServiceClient(cc grpc.ClientConnInterface) ControllerServiceClient {
 	return &controllerServiceClient{cc}
+}
+
+func (c *controllerServiceClient) C2Status(ctx context.Context, in *C2StatusRequest, opts ...grpc.CallOption) (*C2StatusResponse, error) {
+	out := new(C2StatusResponse)
+	err := c.cc.Invoke(ctx, "/protobuf.ControllerService/C2Status", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *controllerServiceClient) ListShells(ctx context.Context, in *ListShellsRequest, opts ...grpc.CallOption) (*ListShellsResponse, error) {
@@ -114,6 +125,8 @@ func (c *controllerServiceClient) NewClient(ctx context.Context, in *NewClientRe
 // All implementations must embed UnimplementedControllerServiceServer
 // for forward compatibility
 type ControllerServiceServer interface {
+	// Request C2 status
+	C2Status(context.Context, *C2StatusRequest) (*C2StatusResponse, error)
 	// List all active shells
 	ListShells(context.Context, *ListShellsRequest) (*ListShellsResponse, error)
 	// Request shells log data in full
@@ -131,6 +144,9 @@ type ControllerServiceServer interface {
 type UnimplementedControllerServiceServer struct {
 }
 
+func (UnimplementedControllerServiceServer) C2Status(context.Context, *C2StatusRequest) (*C2StatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method C2Status not implemented")
+}
 func (UnimplementedControllerServiceServer) ListShells(context.Context, *ListShellsRequest) (*ListShellsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListShells not implemented")
 }
@@ -157,6 +173,24 @@ type UnsafeControllerServiceServer interface {
 
 func RegisterControllerServiceServer(s grpc.ServiceRegistrar, srv ControllerServiceServer) {
 	s.RegisterService(&ControllerService_ServiceDesc, srv)
+}
+
+func _ControllerService_C2Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(C2StatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).C2Status(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protobuf.ControllerService/C2Status",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).C2Status(ctx, req.(*C2StatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ControllerService_ListShells_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -259,6 +293,10 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "protobuf.ControllerService",
 	HandlerType: (*ControllerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "C2Status",
+			Handler:    _ControllerService_C2Status_Handler,
+		},
 		{
 			MethodName: "ListShells",
 			Handler:    _ControllerService_ListShells_Handler,

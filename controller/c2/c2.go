@@ -22,7 +22,7 @@ KeyFile -> HTTPS C2 TLS key
 Key -> Serpent cipher key
 */
 type C2 struct {
-	Type     string `defailt:"https"` // Reserved for future use...
+	Type     string `default:"https"` // Reserved for future use...
 	Port     string
 	CertFile string
 	KeyFile  string

@@ -7,6 +7,8 @@ RPC service definitions
 */
 
 service ControllerService {
+    // Request C2 status
+    rpc C2Status (C2StatusRequest) returns (C2StatusResponse);
     // List all active shells
     rpc ListShells (ListShellsRequest) returns (ListShellsResponse);
     // Request shells log data in full
@@ -22,6 +24,9 @@ service ControllerService {
 /*
 RPC request definitions
 */
+
+// Request C2 status
+message C2StatusRequest {}
 
 // Request to list all shells
 message ListShellsRequest {}
@@ -49,6 +54,13 @@ message ShellExecRequest {
 /*
 RPC response definitions
 */
+
+// Response to C2StatusRequest
+message C2StatusResponse {
+    bool online = 1;
+    int64 uptime = 2;
+    int64 shell_count = 3;
+}
 
 // Response with list of all active shells
 message ListShellsResponse {

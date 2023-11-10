@@ -11,6 +11,7 @@ const (
 	WARNING
 	ERROR
 	CRITICAL
+	PANIC
 	AUDIT
 )
 
@@ -46,6 +47,8 @@ func Log(level int, message string) {
 		prefix = "[ERR] "
 	case CRITICAL:
 		prefix = "[CRIT] "
+	case PANIC:
+		prefix = "[PANIC]"
 	case AUDIT:
 		prefix = "[AUDIT] "
 	default:
