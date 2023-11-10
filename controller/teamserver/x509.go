@@ -8,6 +8,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"math/big"
+	"net"
 	"time"
 )
 
@@ -30,17 +31,25 @@ func GenCACert() ([]byte, []byte, error) {
 	notBefore := time.Now()
 	notAfter := notBefore.Add(365 * 24 * time.Hour)
 
+	// Generate a unique serial number for the certificate
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// x509 cert template
 	template := x509.Certificate{
-		SerialNumber: big.NewInt(1),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"Big Ballz CA"}, // Nuff said...
+			Organization: []string{"Big Ballz CA"},
 		},
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
 
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
+		IsCA:     true,
+		// ExtKeyUsage can be omitted for a CA certificate
+		// ExtKeyUsage:           []x509.ExtKeyUsage{},
 		BasicConstraintsValid: true,
 	}
 
@@ -144,6 +153,12 @@ func GenTeamServerCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) ([]byt
 		return nil, nil, err
 	}
 
+	// Fetch host IP addresses
+	ips, err := getHostIPAddresses()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Cert is valid for 1 year
 	notBefore := time.Now()
 	notAfter := notBefore.Add(365 * 24 * time.Hour)
@@ -157,8 +172,9 @@ func GenTeamServerCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) ([]byt
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
+		IPAddresses:           ips,
 	}
 
 	// Create our x509 cert
@@ -177,4 +193,48 @@ func GenTeamServerCert(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) ([]byt
 	clientCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: clientCertDER})
 	clientKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: clientPrivDER})
 	return clientCertPEM, clientKeyPEM, nil
+}
+
+/*
+Get ip addresses of all interfaces on host
+*/
+func getHostIPAddresses() ([]net.IP, error) {
+	var ips []net.IP
+
+	// Include localhost
+	ips = append(ips, net.ParseIP("127.0.0.1"))
+
+	// Get all network interfaces
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate over all network interfaces
+	for _, iface := range ifaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return nil, err
+		}
+
+		// Iterate over all addresses for interface
+		for _, addr := range addrs {
+			var ip net.IP
+
+			// Check if it's an IPNet type (not a loopback)
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			// Check if the IP is non-loopback and non-link-local
+			if ip != nil && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() {
+				ips = append(ips, ip)
+			}
+		}
+	}
+
+	return ips, nil
 }

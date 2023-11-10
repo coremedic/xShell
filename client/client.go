@@ -23,8 +23,6 @@ func main() {
 	}
 	// Set Link host address, fetch from first arguement
 	linkInstance.Host = os.Args[1]
-	// Debug
-	linkInstance.Secure = false
 	linkInstance.Connect()
 	defer linkInstance.Close()
 	console.StartLegacyUI()

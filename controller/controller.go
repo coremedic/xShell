@@ -171,7 +171,7 @@ func main() {
 	// Create new logger
 	logger.NewLogger(".xshell/log/controller.log")
 	// Set log level
-	if os.Args[1] == "--debug" || os.Args[1] == "-d" {
+	if len(os.Args) >= 2 && (os.Args[1] == "--debug" || os.Args[1] == "-d") {
 		logger.LogLevel = logger.DEBUG
 	} else {
 		logger.LogLevel = logger.WARNING

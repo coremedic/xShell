@@ -10,10 +10,10 @@ import (
 	"xShell/internal/logger"
 	"xShell/protobuf"
 
-	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/peer"
+	"google.golang.org/protobuf/proto"
 )
 
 /*
@@ -92,7 +92,12 @@ func clientCertInterceptor(ctx context.Context, req interface{}, info *grpc.Unar
 			for _, cert := range tlsInfo.State.PeerCertificates {
 				username := cert.Subject.CommonName
 				if pb, ok := req.(proto.Message); ok {
-					logger.Log(logger.AUDIT, fmt.Sprintf("%s called: %v", username, proto.MarshalTextString(pb)))
+					marshalledPb, err := proto.Marshal(pb)
+					if err != nil {
+						logger.Log(logger.ERROR, fmt.Sprintf("Failed to marshal proto message: %v", err))
+					} else {
+						logger.Log(logger.AUDIT, fmt.Sprintf("%s called: %v", username, marshalledPb))
+					}
 				} else {
 					logger.Log(logger.AUDIT, fmt.Sprintf("%s called a function but request could not be logged", username))
 				}
