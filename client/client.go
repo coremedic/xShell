@@ -23,7 +23,9 @@ func main() {
 	}
 	// Set Link host address, fetch from first arguement
 	linkInstance.Host = os.Args[1]
+	// Connects to teamserver
 	linkInstance.Connect()
 	defer linkInstance.Close()
+	// Use legacy UI until new UI is ready
 	console.StartLegacyUI()
 }

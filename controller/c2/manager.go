@@ -1,7 +1,6 @@
 package c2
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -64,15 +63,15 @@ func (s *SafeShellMap) Add(shell *Shell) {
 /*
 Get Shell from map by Shell Id
 
-Return -> Pointer to shell, error
+Return -> Pointer to shell, boolean, shell exists
 */
-func (s *SafeShellMap) Get(shellId string) (*Shell, error) {
+func (s *SafeShellMap) Get(shellId string) (*Shell, bool) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 	if shell, exists := s.Shells[shellId]; exists {
-		return shell, nil
+		return shell, true
 	}
-	return nil, fmt.Errorf("shell '%s' doesnt exist", shellId)
+	return nil, false
 }
 
 /*

@@ -3,7 +3,6 @@ package c2
 import (
 	"bytes"
 	"fmt"
-	"xShell/internal/logger"
 
 	"github.com/enceve/crypto/serpent"
 )
@@ -16,7 +15,6 @@ Return -> Encrypted []byte data, error
 func SerpentEncrypt(data []byte, key []byte) ([]byte, error) {
 	cipher, err := serpent.NewCipher(key)
 	if err != nil {
-		logger.Log(logger.ERROR, fmt.Sprintf("Error creating cipher block [SerpentEncrypt]: %s", err))
 		return nil, err
 	}
 
@@ -38,12 +36,10 @@ Return -> Decrypted []byte data, error
 func SerpentDecrypt(data []byte, key []byte) ([]byte, error) {
 	cipher, err := serpent.NewCipher(key)
 	if err != nil {
-		logger.Log(logger.ERROR, fmt.Sprintf("Error creating cipher block [SerpentDecrypt]: %s", err))
 		return nil, err
 	}
 
 	if remainder := len(data) % 16; remainder != 0 {
-		logger.Log(logger.ERROR, "Failed to decrypt data invalid block size")
 		return nil, fmt.Errorf("invalid block size")
 	}
 

