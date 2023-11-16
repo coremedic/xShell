@@ -72,3 +72,20 @@ func (l *Link) StreamShellLog(ctx context.Context, shellID string, logUpdates ch
 		}
 	}
 }
+
+/*
+Get C2 listener status
+*/
+func (l *Link) C2Status() (*protobuf.C2StatusResponse, error) {
+	// Create context with 5 second timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	// Make gRPC request
+	resp, err := l.Client.C2Status(ctx, &protobuf.C2StatusRequest{})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return resp, err
+}

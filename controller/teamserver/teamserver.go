@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"xShell/controller/c2"
 	"xShell/internal/logger"
 	"xShell/protobuf"
 
@@ -27,6 +28,8 @@ CACert -> Certificate Authority cert
 
 CAKey -> Certificate Authority key
 
+Listener -> C2 listener object
+
 protobuf -> Protobuf service struct
 */
 type TeamServer struct {
@@ -34,6 +37,7 @@ type TeamServer struct {
 	ServerCert *tls.Certificate
 	CACert     []byte
 	CAKey      []byte
+	Listener   *c2.C2
 	protobuf.UnimplementedControllerServiceServer
 }
 
@@ -86,24 +90,41 @@ func (ts *TeamServer) Start() {
 gRPC server interceptor for logging client gRPC requests.
 */
 func clientCertInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	methodName := info.FullMethod // Get the full RPC method name
+	logger.Log(logger.DEBUG, fmt.Sprintf("Intercepting method: %s", methodName))
+
 	peer, ok := peer.FromContext(ctx)
-	if ok && peer.AuthInfo != nil {
-		if tlsInfo, ok := peer.AuthInfo.(credentials.TLSInfo); ok {
-			for _, cert := range tlsInfo.State.PeerCertificates {
-				username := cert.Subject.CommonName
-				if pb, ok := req.(proto.Message); ok {
-					marshalledPb, err := proto.Marshal(pb)
-					if err != nil {
-						logger.Log(logger.ERROR, fmt.Sprintf("Failed to marshal proto message: %v", err))
-					} else {
-						logger.Log(logger.AUDIT, fmt.Sprintf("%s called: %v", username, marshalledPb))
-					}
-				} else {
-					logger.Log(logger.AUDIT, fmt.Sprintf("%s called a function but request could not be logged", username))
-				}
+	if !ok || peer.AuthInfo == nil {
+		logger.Log(logger.ERROR, "No peer information available")
+		return handler(ctx, req)
+	}
+
+	tlsInfo, ok := peer.AuthInfo.(credentials.TLSInfo)
+	if !ok {
+		logger.Log(logger.ERROR, "No TLS information available")
+		return handler(ctx, req)
+	}
+
+	for _, cert := range tlsInfo.State.PeerCertificates {
+		username := cert.Subject.CommonName
+
+		if pb, ok := req.(proto.Message); ok {
+			logger.Log(logger.DEBUG, fmt.Sprintf("Marshaling request for method %s", methodName))
+			marshalledPb, err := proto.Marshal(pb)
+			if err != nil {
+				logger.Log(logger.ERROR, fmt.Sprintf("Failed to marshal proto message for method %s: %v", methodName, err))
+				continue
 			}
+			if len(marshalledPb) == 0 {
+				logger.Log(logger.AUDIT, fmt.Sprintf("%s called an empty request for method %s", username, methodName))
+			} else {
+				logger.Log(logger.AUDIT, fmt.Sprintf("%s called method %s with request: %v", username, methodName, marshalledPb))
+			}
+		} else {
+			logger.Log(logger.AUDIT, fmt.Sprintf("%s called method %s but request could not be logged (not a proto message)", username, methodName))
 		}
 	}
+
 	return handler(ctx, req)
 }
 

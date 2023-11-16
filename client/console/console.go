@@ -131,6 +131,7 @@ func StartLegacyUI() {
 		readline.PcItem("shell"),
 		readline.PcItem("clear"),
 		readline.PcItem("help"),
+		readline.PcItem("status"),
 		readline.PcItem("exit"),
 		readline.PcItem("whoami"),
 		readline.PcItem("kill"),
@@ -222,6 +223,13 @@ func StartLegacyUI() {
 				fmt.Printf("ID: %s, IP: %s Last Call: %.0d seconds ago\n", shellId, shellInfo.Ip, shellInfo.LastCall)
 			}
 			continue
+		case "status": // Fetch C2 listener status
+			status, err := legacyFetchStatus()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			fmt.Printf("Online: %s\nUptime: %s\nShell Count: %s\n", status["Online"], status["Uptime"], status["Shell Count"])
 		case "shell": // Start shell interaction
 			err := legacyFetchShells()
 			if err != nil {

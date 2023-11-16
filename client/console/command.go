@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"xShell/client/link"
 	"xShell/protobuf"
 )
@@ -30,6 +31,7 @@ shell <shell_name>       Interact with a specific shell
 clear                    Clear the console
 help                     Show this menu
 return                   Exit shell interaction, return to main menu
+status                   C2 listener status information
 exit                     Exit xShell client
 -------------------------------------------
 Shell Interaction Commands:
@@ -56,6 +58,9 @@ func legacyClearConsole() error {
 	return cmd.Run()
 }
 
+/*
+Fetch shell list (legacy console)
+*/
 func legacyFetchShells() error {
 	// Fetch link instance
 	linkInstance := link.GetLinkInstance()
@@ -77,6 +82,9 @@ func legacyFetchShells() error {
 	return nil
 }
 
+/*
+Fetch shells entire log (legacy console)
+*/
 func legacyFetchShellLog(shellID string) ([]byte, error) {
 	// Fetch link instance
 	linkInstance := link.GetLinkInstance()
@@ -86,4 +94,23 @@ func legacyFetchShellLog(shellID string) ([]byte, error) {
 		return nil, err
 	}
 	return log.ShellLog, nil
+}
+
+/*
+Fetch C2 listener status (legacy console)
+*/
+func legacyFetchStatus() (map[string]string, error) {
+	// Fetch link instance
+	linkInstance := link.GetLinkInstance()
+	// Make gRPC call
+	resp, err := linkInstance.C2Status()
+	if err != nil {
+		return nil, err
+	}
+	// Make listener status map
+	status := make(map[string]string)
+	status["Online"] = strconv.FormatBool(resp.Online)
+	status["Uptime"] = fmt.Sprint(resp.Uptime)
+	status["Shell Count"] = fmt.Sprint(resp.ShellCount)
+	return status, nil
 }

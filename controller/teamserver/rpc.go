@@ -3,13 +3,17 @@ package teamserver
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+	"xShell/controller/c2"
+	"xShell/internal/logger"
 	"xShell/protobuf"
 )
 
@@ -89,4 +93,43 @@ func (ts *TeamServer) StreamShellLog(req *protobuf.StreamShellLogRequest, stream
 			}
 		}
 	}
+}
+
+/*
+C2 status RPC
+*/
+func (ts *TeamServer) C2Status(ctx context.Context, req *protobuf.C2StatusRequest) (*protobuf.C2StatusResponse, error) {
+	// Check if listener exists
+	if ts.Listener == nil {
+		logger.Log(logger.DEBUG, "Listener object is nil")
+		return &protobuf.C2StatusResponse{
+			Online:     false,
+			Uptime:     0,
+			ShellCount: 0,
+		}, nil
+	}
+	// Make https client, set defaults
+	client := http.DefaultClient
+	// Ignore TLS certificate errors
+	client.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	// Make https request to listener
+	_, err := client.Get(fmt.Sprintf("https://127.0.0.1:%s/ping", ts.Listener.Port))
+	if err != nil {
+		logger.Log(logger.DEBUG, err.Error())
+		return &protobuf.C2StatusResponse{
+			Online:     false,
+			Uptime:     0,
+			ShellCount: 0,
+		}, nil
+	}
+	// Listener is online
+	return &protobuf.C2StatusResponse{
+		Online:     true,
+		Uptime:     ts.Listener.Uptime,
+		ShellCount: int64(len(c2.ShellMap.Shells)),
+	}, nil
 }
