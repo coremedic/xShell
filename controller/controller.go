@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 	"xShell/controller/c2"
+	"xShell/controller/logger"
 	"xShell/controller/teamserver"
-	"xShell/internal/logger"
 )
 
 const (

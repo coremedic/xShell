@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"time"
 	"xShell/controller/c2"
-	"xShell/internal/logger"
+	"xShell/controller/logger"
 	"xShell/protobuf"
 )
 

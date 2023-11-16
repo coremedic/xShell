@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 	"xShell/controller/c2"
-	"xShell/internal/logger"
+	"xShell/controller/logger"
 	"xShell/protobuf"
 
 	"google.golang.org/grpc"
