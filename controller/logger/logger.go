@@ -13,6 +13,7 @@ const (
 	CRITICAL
 	PANIC
 	AUDIT
+	BUILD
 )
 
 var (
@@ -51,6 +52,8 @@ func Log(level int, message string) {
 		prefix = "[PANIC]"
 	case AUDIT:
 		prefix = "[AUDIT] "
+	case BUILD:
+		prefix = "[BUILD] "
 	default:
 		prefix = "[UNK] "
 	}

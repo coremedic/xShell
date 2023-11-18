@@ -12,11 +12,13 @@ import (
 Check if Docker engine and API are present and reachable on this system
 */
 func CheckEngine() error {
-	client, err := client.NewClientWithOpts(client.FromEnv)
+	// Create new client
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %v", err)
 	}
 
+	// Ping Docker engine server
 	_, err = client.Ping(context.Background())
 	if err != nil {
 		return fmt.Errorf("docker engine is not running or API is not reachable: %v", err)

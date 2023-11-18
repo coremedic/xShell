@@ -21,6 +21,7 @@
 go.work
 
 # xShell files
-.history
 .xshell
 *.log
+controller-*
+client-*
