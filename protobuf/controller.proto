@@ -15,10 +15,12 @@ service ControllerService {
     rpc ShellLog (ShellLogRequest) returns (ShellLogResponse);
     // Stream shells log data
     rpc StreamShellLog (StreamShellLogRequest) returns (stream StreamShellLogResposne);
-    // Task shell to execute command
-    rpc ShellExec (ShellExecRequest) returns (Empty);
-    // Create a new client
+    // Task shell to execute operation
+    rpc ExecuteOperation (ExecuteOperationRequest) returns (Empty);
+    // Generate new client
     rpc NewClient (NewClientRequest) returns (NewClientResponse);
+    // Generate new payload
+    rpc NewPayload (NewPayloadRequest) returns (NewPayloadResponse);
 }
 
 /*
@@ -46,9 +48,20 @@ message StreamShellLogRequest {
     string shell = 1;
 }
 
-// Request to execute command on shell host
-message ShellExecRequest {
-    string command = 1;
+// Request shell to execute operation
+message ExecuteOperationRequest {
+    string shell = 1;
+    string operation = 2;
+    repeated string arguments = 3;
+}
+
+// Request to generate new payload
+message NewPayloadRequest {
+    string os = 1;
+    string arch = 2;
+    string host = 3;
+    string port = 4;
+    string format = 5; // Dont really need this now, but will need later when we have dll/shellcode payloads
 }
 
 /*
@@ -80,6 +93,12 @@ message ShellLogResponse {
 // Response to stream shells log
 message StreamShellLogResposne {
     string log = 1;
+}
+
+// Response to new payload request
+message NewPayloadResponse {
+    string name = 1;
+    bytes payload = 2;
 }
 
 /*

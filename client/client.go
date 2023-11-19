@@ -12,7 +12,7 @@ var err error
 func main() {
 	// Check if proper flags have been passed
 	if len(os.Args) < 3 {
-		log.Fatalf("Usage: './%s [teamserver_ip] [path_to_client_cert]'", os.Args[0])
+		log.Fatalf("Usage: '%s [teamserver_ip] [path_to_client_cert]'", os.Args[0])
 	}
 	// Fetch Link singleton instance
 	linkInstance := link.GetLinkInstance()

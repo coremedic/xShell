@@ -25,6 +25,11 @@ func (l *Link) ListShells() (*protobuf.ListShellsResponse, error) {
 	return resp, nil
 }
 
+/*
+Get a shells entire log
+
+Args -> shellID
+*/
 func (l *Link) ShellLog(shellID string) (*protobuf.ShellLogResponse, error) {
 	// Create context with 5 second timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -88,4 +93,46 @@ func (l *Link) C2Status() (*protobuf.C2StatusResponse, error) {
 		return nil, err
 	}
 	return resp, err
+}
+
+/*
+Generate new client (mTLS) certificate
+
+Args -> Username
+*/
+func (l *Link) NewClient(username string) (*protobuf.NewClientResponse, error) {
+	// Create context with 5 second timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	// Make gRPC request
+	resp, err := l.Client.NewClient(ctx, &protobuf.NewClientRequest{Username: username})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return resp, err
+}
+
+/*
+Task shell to execute operation
+
+Args -> shellID, Operation, Arguments
+*/
+func (l *Link) ExecuteOperation(shellID string, op string, args []string) error {
+	// Create context with 5 second timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	// Make gRPC request
+	_, err := l.Client.ExecuteOperation(ctx, &protobuf.ExecuteOperationRequest{
+		Shell:     shellID,
+		Operation: op,
+		Arguments: args,
+	})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }

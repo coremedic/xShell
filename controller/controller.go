@@ -181,7 +181,6 @@ func main() {
 	} else {
 		logger.LogLevel = logger.WARNING
 	}
-	logger.LogLevel = logger.DEBUG
 	// Close at program exit
 	defer logger.Close()
 	ts.Port = "1991"

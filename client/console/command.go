@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"xShell/client/link"
@@ -113,4 +114,27 @@ func legacyFetchStatus() (map[string]string, error) {
 	status["Uptime"] = fmt.Sprint(resp.Uptime)
 	status["Shell Count"] = fmt.Sprint(resp.ShellCount)
 	return status, nil
+}
+
+/*
+Generate new client certificate (legacy console)
+*/
+func legacyNewClient(username string) error {
+	// Fetch link instance
+	linkInstance := link.GetLinkInstance()
+	// Make gRPC call
+	fmt.Printf("Generating mTLS certificate for '%s'...\n", username)
+	resp, err := linkInstance.NewClient(username)
+	if err != nil {
+		return err
+	}
+	// Write client cert to disk
+	cert := resp.GetCert()
+	path := filepath.Join(".", fmt.Sprintf("%s.pem", username))
+	err = os.WriteFile(path, cert, 0644)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Certificate saved to '%s'\n", path)
+	return nil
 }

@@ -269,6 +269,28 @@ func StartLegacyUI() {
 			go linkInstance.StreamShellLog(ctx, args[0], logUpdates)
 			// Print shell log to console
 			fmt.Println(string(log))
+		case "gen": // Generate command, various things to generate (client/payload)
+			//  We have an argument to work with
+			if len(args) < 1 {
+				fmt.Println("gen command requires an argument ('client' or 'payload')")
+				continue
+			}
+			// Client or Payload
+			switch args[0] {
+			case "client":
+				// Need username argument
+				if len(args) < 2 {
+					fmt.Println("Usage: gen client <username>")
+					continue
+				}
+				// Generate new client
+				err := legacyNewClient(args[1])
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					continue
+				}
+			}
 		}
 	}
 }
