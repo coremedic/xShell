@@ -26,3 +26,4 @@ go.work
 controller-*
 client-*
 *.pem
+.env

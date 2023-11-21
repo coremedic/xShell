@@ -28,7 +28,7 @@ CACert -> Certificate Authority cert
 
 CAKey -> Certificate Authority key
 
-Listener -> C2 listener object
+C2 -> C2 l object
 
 protobuf -> Protobuf service struct
 */
@@ -37,7 +37,7 @@ type TeamServer struct {
 	ServerCert *tls.Certificate
 	CACert     []byte
 	CAKey      []byte
-	Listener   *c2.C2
+	C2         *c2.C2
 	protobuf.UnimplementedControllerServiceServer
 }
 

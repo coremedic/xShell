@@ -1,2 +1,2 @@
-github.com/coremedic/goldr v0.0.0-20231007210056-3fef9254dfb8 h1:mXhau/oF8StBXJ/4pLlJYc0H9XvJxG8j1RzySd3KNmk=
-github.com/coremedic/goldr v0.0.0-20231007210056-3fef9254dfb8/go.mod h1:rPD4DwP5yZVNHQtXvWf1/S6tHHW6Xwj7BJCBMlAOjNc=
+golang.org/x/sys v0.14.0 h1:Vz7Qs629MkJkGyHxUlRHizWJRG2j8fbQKjELVSNhy7Q=
+golang.org/x/sys v0.14.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=

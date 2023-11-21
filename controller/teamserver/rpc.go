@@ -100,7 +100,7 @@ C2 status RPC
 */
 func (ts *TeamServer) C2Status(ctx context.Context, req *protobuf.C2StatusRequest) (*protobuf.C2StatusResponse, error) {
 	// Check if listener exists
-	if ts.Listener == nil {
+	if ts.C2 == nil {
 		logger.Log(logger.DEBUG, "Listener object is nil")
 		return &protobuf.C2StatusResponse{
 			Online:     false,
@@ -117,7 +117,7 @@ func (ts *TeamServer) C2Status(ctx context.Context, req *protobuf.C2StatusReques
 		},
 	}
 	// Make https request to listener
-	_, err := client.Get(fmt.Sprintf("https://127.0.0.1:%s/ping", ts.Listener.Port))
+	_, err := client.Get(fmt.Sprintf("https://127.0.0.1:%s/ping", ts.C2.Port))
 	if err != nil {
 		logger.Log(logger.DEBUG, err.Error())
 		return &protobuf.C2StatusResponse{
@@ -129,7 +129,7 @@ func (ts *TeamServer) C2Status(ctx context.Context, req *protobuf.C2StatusReques
 	// Listener is online
 	return &protobuf.C2StatusResponse{
 		Online:     true,
-		Uptime:     ts.Listener.Uptime,
+		Uptime:     ts.C2.Uptime,
 		ShellCount: int64(len(c2.ShellMap.Shells)),
 	}, nil
 }

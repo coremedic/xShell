@@ -15,7 +15,7 @@ func CheckEngine() error {
 	// Create new client
 	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return fmt.Errorf("failed to create docker client: %v", err)
+		return err
 	}
 
 	// Ping Docker engine server
@@ -30,9 +30,13 @@ func CheckEngine() error {
 /*
 Check if Docker container image is present
 */
-func ImageExists(ctx context.Context, cli *client.Client, image string) (bool, error) {
-	// Query API for image list
-	images, err := cli.ImageList(ctx, types.ImageListOptions{})
+func ImageExists(image string) (bool, error) {
+	// Create new client
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return false, err
+	}
+	images, err := client.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -46,4 +50,22 @@ func ImageExists(ctx context.Context, cli *client.Client, image string) (bool, e
 	}
 
 	return false, nil
+}
+
+/*
+Pull Docker image
+*/
+func PullImage(image string) error {
+	// Create new client
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+	// Pull the image
+	_, err = client.ImagePull(context.Background(), image, types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

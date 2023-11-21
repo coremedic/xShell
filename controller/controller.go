@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"xShell/controller/c2"
+	"xShell/controller/docker"
 	"xShell/controller/logger"
 	"xShell/controller/teamserver"
 )
@@ -28,8 +29,8 @@ const (
 )
 
 var (
-	ts       teamserver.TeamServer = teamserver.TeamServer{}
-	listener c2.C2                 = c2.C2{}
+	ts teamserver.TeamServer = teamserver.TeamServer{}
+	C2 c2.C2                 = c2.C2{}
 )
 
 func init() {
@@ -187,11 +188,27 @@ func main() {
 	// Start TeamServer, runs as goroutine
 	ts.Start()
 	// Start C2 listener
-	listener.CertFile = serverCertPath
-	listener.KeyFile = serverKeyPath
-	listener.Port = "1848"
-	listener.Type = "https"
-	// Add listener to TeamServer object
-	ts.Listener = &listener
-	listener.Start()
+	C2.CertFile = serverCertPath
+	C2.KeyFile = serverKeyPath
+	C2.Port = "1848"
+	C2.Type = "https"
+	// Add C2 to TeamServer object
+	ts.C2 = &C2
+	// Check if docker engine is reachable
+	err := docker.CheckEngine()
+	if err != nil {
+		// Im not sure how this part should work, i'll come back to it later
+		logger.Log(logger.WARNING, err.Error())
+	}
+	// Pull golang:1.21.4 container image
+	if ok, err := docker.ImageExists("golang:1.21.4"); err != nil {
+		logger.Log(logger.WARNING, err.Error())
+	} else if !ok {
+		err := docker.PullImage("golang:1.21.4")
+		if err != nil {
+			logger.Log(logger.WARNING, err.Error())
+		}
+	}
+	// Start C2
+	C2.Start()
 }
